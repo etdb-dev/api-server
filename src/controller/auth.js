@@ -9,7 +9,10 @@ const User = require('../db/user');
 
 let authController = {
   accessDefaults: {
-    'test': true
+    'writeAPI': false,
+    'readAPI': true,
+    'manageUsers': false,
+    'isAdmin': false
   }
 };
 
@@ -73,11 +76,14 @@ authController.deleteUser = (req, res) => {
 };
 
 authController.updateUser = (req, res) => {
-  mw.canAccess(req, res, () => {
-    User.findOneAndUpdate({ username: req.params.uname }, {
-      password: req.body.password,
-      access: _.assign(authController.accessDefaults, req.body.access || {})
-    }).then((updatedDoc) => {
+  mw.canAccess(req, res, (grantedBy) => {
+    let updates = req.body;
+
+    if (updates.access) {
+      updates.access = grantedBy === 'self' ? req.tokenPayload.access : _.assign(authController.accessDefaults, req.body.access || {});;
+    }
+
+    User.findOneAndUpdate({ username: req.params.uname }, updates).then((updatedDoc) => {
       let msg = `${updatedDoc.username} has been updated`;
       logSuccess(msg);
       res.json({ message: msg });
