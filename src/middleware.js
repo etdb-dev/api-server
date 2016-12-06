@@ -63,27 +63,29 @@ middleware.doBasicAuth = (req, res, next) => {
   });
 };
 
-middleware.canAccess = (req, res, next, accessType) => {
+middleware.canAccess = (req, res, next, data) => {
 
   function fail() {
-    logWarn(`Access denied to ${req.tokenPayload.username} on ${accessType}`);
+    logWarn(`Access denied to ${req.tokenPayload.username} on ${data.accessType}`);
     res.status(401).json({
-      message: `You don't have the permission to ${accessType}.`
+      message: `You don't have the permission to ${data.accessType}.`
     });
+  }
+
+  if (!data.accessType) {
+    return fail();
   }
 
   // Even though all /auth routes rely on Basic Auth,
   // req.tokenPayload is populated!
   // see: module:middleware.doBasicAuth
   let access = req.tokenPayload.access;
+  let isAdmin = access['isAdmin'];
+  let accessTest = access[data.accessType];
+  let selfTest = data.allowSelf === req.tokenPayload.username;
+  let grantedBy = isAdmin ? 'isAdmin' : accessTest ? 'access' : selfTest ? 'self' : '';
 
-  if (!accessType) {
-    return fail();
-  }
-  if (access['isAdmin'] || access[accessType]) {
-    return next();
-  }
-  fail();
+  return (isAdmin || accessTest || selfTest) ? next(grantedBy) : fail();
 };
 
 let failAuthRequest = (res) => {
