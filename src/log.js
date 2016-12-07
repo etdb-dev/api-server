@@ -193,10 +193,10 @@ function buildModuleTag() {
 
 let registerGlobals = () => {
   _.mapKeys(logLevels.levels, (value, key) => {
-    let debugLog = log.winston.debug;
+    let debugLog = process.env.etdb_testing ? () => void 0 : log.winston.debug;
     let globalKey = `log${key[0].toUpperCase()}${key.slice(1)}`;
     debugLog(`Registering global.${globalKey} -> log.winston.${key}`);
-    global[globalKey] = log.winston[key];
+    global[globalKey] = process.env.etdb_testing ? () => void 0 : log.winston[key];
   });
 };
 

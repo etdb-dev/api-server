@@ -36,7 +36,7 @@
     "start": "sudo node ./etdb.js",
     "build-docs": "jsdoc --configure .jsdoc -R ./README.md --verbose ./; echo 'Done.'",
     "build-api-docs": "apidoc -i src/docs/api/router -o docs/api",
-    "test-api": "mocha ./test/api-runner.js --timeout=10000",
+    "test-api": "etdb_testing=true mocha ./test/api-runner.js --timeout=10000",
     "test": "mocha ./test/runner.js"
   }
 }
