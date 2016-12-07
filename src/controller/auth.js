@@ -9,7 +9,10 @@ const User = require('../db/user');
 
 let authController = {
   accessDefaults: {
-    'test': true
+    'writeAPI': false,
+    'readAPI': true,
+    'manageUsers': false,
+    'isAdmin': false
   }
 };
 
@@ -27,7 +30,7 @@ authController.getToken = (req, res, next) => {
       message: 'Token for evr\'body!',
       token: token
     });
-  }, 'readAPI');
+  }, { accessType: 'readAPI' });
 };
 
 authController.addUser = (req, res) => {
@@ -54,7 +57,7 @@ authController.addUser = (req, res) => {
     }).catch(() => res.status(409).json({
       message: `user (${data.username}) already exists`
     }));
-  }, 'manageUsers');
+  }, { accessType: 'manageUsers' });
 };
 
 authController.deleteUser = (req, res) => {
@@ -69,31 +72,36 @@ authController.deleteUser = (req, res) => {
         res.json({ message: msg });
       }
     });
-  }, 'manageUsers');
+  }, { accessType: 'manageUsers', allowSelf: req.params.uname });
 };
 
 authController.updateUser = (req, res) => {
-  mw.canAccess(req, res, () => {
-    User.findOneAndUpdate({ username: req.params.uname }, {
-      password: req.body.password,
-      access: _.assign(authController.accessDefaults, req.body.access || {})
-    }).then((updatedDoc) => {
+  mw.canAccess(req, res, (grantedBy) => {
+    let updates = req.body;
+
+    if (updates.access) {
+      updates.access = grantedBy === 'self' ? req.tokenPayload.access : _.assign(authController.accessDefaults, req.body.access || {});;
+    }
+
+    User.findOneAndUpdate({ username: req.params.uname }, updates).then((updatedDoc) => {
       let msg = `${updatedDoc.username} has been updated`;
       logSuccess(msg);
       res.json({ message: msg });
     });
-  }, 'manageUsers');
+  }, { accessType: 'manageUsers', allowSelf: req.params.uname });
 };
 
 authController.listUsers = (req, res) => {
-  mw.canAccess(req, res, () => {
-    User.find({}, {_id: 0, username: 1, access: 1 }).then((docs) => {
+  let username = req.tokenPayload.username;
+  mw.canAccess(req, res, (grantedBy) => {
+    let findFilter = grantedBy === 'self' ? { username: username } : {};
+    User.find(findFilter, {_id: 0, username: 1, access: 1 }).then((docs) => {
       res.json({
         msg: 'Userlist',
         users: docs
       });
     });
-  }, 'manageUsers');
+  }, { accessType: 'manageUsers', allowSelf: req.tokenPayload.username });
 };
 
 module.exports = authController;

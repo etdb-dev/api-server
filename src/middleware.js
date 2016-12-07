@@ -43,15 +43,15 @@ middleware.doBasicAuth = (req, res, next) => {
   let userData = basicAuth(req) || { name: null, pass: null };
   let name = userData.name;
   let pass = userData.pass;
-  logInfo(`username: ${name}`);
-  logInfo(`password supplied: [${!pass ? ' ' : 'X'}]`);
+  logSuccess(`username: ${name}`);
+  !pass ? logWarn('No password!') : logSuccess('password supplied');
   db.user.findOne({ username: name }).then((userDoc) => {
     if (!userData || !name || !pass) {
       throw new Error();
     }
     userDoc.validatePassword(pass).then(() => {
       req.tokenPayload = userDoc.getTokenData();
-      logSuccess('Credentials accepted');
+      logSuccess('Basic Auth credentials accepted');
       return next();
     }).catch((err) => {
       logError(err.message);
@@ -63,27 +63,33 @@ middleware.doBasicAuth = (req, res, next) => {
   });
 };
 
-middleware.canAccess = (req, res, next, accessType) => {
+middleware.canAccess = (req, res, next, data) => {
 
   function fail() {
-    logWarn(`Access denied to ${req.tokenPayload.username} on ${accessType}`);
+    logWarn(`Access denied to ${req.tokenPayload.username} on ${data.accessType}`);
     res.status(401).json({
-      message: `You don't have the permission to ${accessType}.`
+      message: `You don't have the permission to ${data.accessType}.`
     });
+  }
+
+  if (!data.accessType) {
+    return fail();
   }
 
   // Even though all /auth routes rely on Basic Auth,
   // req.tokenPayload is populated!
   // see: module:middleware.doBasicAuth
   let access = req.tokenPayload.access;
+  let isAdmin = access['isAdmin'];
+  let accessTest = access[data.accessType];
+  let selfTest = data.allowSelf === req.tokenPayload.username;
+  let grantedBy = isAdmin ? 'isAdmin' : accessTest ? 'access' : selfTest ? 'self' : '';
 
-  if (!accessType) {
-    return fail();
+  if (isAdmin || accessTest || selfTest) {
+    logSuccess(`Requested access level (${data.accessType}) was satisfied by: ${grantedBy}`);
+    return next(grantedBy);
   }
-  if (access['isAdmin'] || access[accessType]) {
-    return next();
-  }
-  fail();
+  return fail();
 };
 
 let failAuthRequest = (res) => {
