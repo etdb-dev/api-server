@@ -4,7 +4,7 @@ const Promise = require('bluebird');
 const mongoose = require('mongoose');
 mongoose.Promise = Promise;
 
-const config = require.main.require('./src/config');
+const config = require('./config');
 
 let db = {
   connection: null,
