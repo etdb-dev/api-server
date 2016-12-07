@@ -25,14 +25,15 @@ authTests.createAccessObjectFor = (accessType) => {
 };
 
 authTests.testUser = _.reduce(accessDefaults, (acc, val, key) => {
+  let nameSalt = Math.round(Math.random() * 1000000).toString(16);
+  let pwSalt = Math.round(Math.random() * 1000000).toString(16);
   acc[key] = {
-    username: key,
-    password: '',
+    username: nameSalt + key,
+    password: pwSalt + key,
     access: authTests.createAccessObjectFor(key)
   };
   return acc;
 }, authTests.testUser);
-console.log(authTests.testUser);
 
 authTests.test401 = (done) => {
   chai.request(cfg.baseUrl).get('/auth').end((err) => {
@@ -59,8 +60,6 @@ authTests.run = () => {
 
       it('should respond with a JWT, if credentials are valid', (done) => {
         let [ name, pw ] = authTests.getCredentialsFor('readAPI');
-        console.log('Auth with');
-        console.log(name, ',', pw);
         chai.request(cfg.baseUrl)
         .get('/auth')
         .auth(name, pw)
