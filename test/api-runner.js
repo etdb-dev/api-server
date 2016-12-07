@@ -1,7 +1,10 @@
 'use strict';
+const chai = require('chai');
+chai.use(require('chai-http'));
+const expect = chai.expect;
 
 const authTests = require('./auth');
-const expect = require('chai').expect;
+//const appsTests = require('./apps');
 
 describe('Server', () => {
   it('should be running', done => {
@@ -11,6 +14,10 @@ describe('Server', () => {
       done();
     });
   });
+  it('should accept temporary test users', (done) => {
+    done();
+  });
 });
 
-authTests();
+authTests.run();
+//appsTests();
