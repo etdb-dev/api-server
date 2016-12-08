@@ -1,157 +1,184 @@
 'use strict';
 
 const _ = require('lodash');
+const Promise = require('bluebird');
 const chai = require('chai');
 chai.use(require('chai-http'));
 const expect = chai.expect;
 const cfg = require('./config.json');
 
-const accessDefaults = require('../src/const').accessDefaults;
-const noRights = _.mapValues(accessDefaults, (value) => {
+const _accessDefaults = require('../src/const').accessDefaults;
+const noRights = _.mapValues(_accessDefaults, (value) => {
 
   return false;
 });
 
-let authTests = {
-  token: '',
-  accessTypes: _.keys(accessDefaults),
-  testUser: {}
-};
+let _token;
 
-authTests.createAccessObjectFor = (accessType) => {
+let createAccessObjectFor = (accessType) => {
   let accessValue = {};
   accessValue[accessType] = true;
   return _.assign(noRights, accessValue);
 };
 
-authTests.testUser = _.reduce(accessDefaults, (acc, val, key) => {
+let _testUsers = _.reduce(_accessDefaults, (acc, val, key) => {
   let nameSalt = Math.round(Math.random() * 1000000).toString(16);
   let pwSalt = Math.round(Math.random() * 1000000).toString(16);
   acc[key] = {
     username: nameSalt + key,
     password: pwSalt + key,
-    access: authTests.createAccessObjectFor(key)
+    access: createAccessObjectFor(key)
   };
   return acc;
-}, authTests.testUser);
+}, {});
 
-authTests.test401 = (done) => {
+_testUsers.addTestUser = {
+  username: 'addTestUser',
+  password: 'addTestUser',
+  access: {
+    'readAPI': false,
+    'writeAPI': false,
+    'isAdmin': false,
+    'manageUsers': false
+  },
+  noauto: true
+};
+_testUsers.deleteTestUser = {
+  username: 'deleteTestUser',
+  password: 'deleteTestUser',
+  access: {
+    'readAPI': false,
+    'writeAPI': false,
+    'isAdmin': false,
+    'manageUsers': false
+  }
+};
+
+let test401 = () => {
   chai.request(cfg.baseUrl).get('/auth').end((err) => {
     expect(err).to.have.status(401);
-    done();
   });
 };
 
-authTests.testMessage = (expectedMessage, resBody) => {
+let testMessage = (expectedMessage, resBody) => {
   expect(resBody).to.have.property('message');
   expect(expectedMessage).to.equal(resBody.message);
 };
 
-authTests.getCredentialsFor = (accessType) => {
-  let userObj = authTests.testUser[accessType];
+let getCredentialsFor = (accessType) => {
+  let userObj = _testUsers[accessType];
   return [ userObj.username, userObj.password ];
 };
 
-authTests.run = () => {
-  describe('/auth', () => {
+let run = () => {
+  return new Promise((resolve) => {
+
     describe('GET', () => {
 
-      it('should deny access, when no credentials are given', authTests.test401);
+      it('should deny access, when no credentials are given', test401);
 
-      it('should respond with a JWT, if credentials are valid', (done) => {
-        let [ name, pw ] = authTests.getCredentialsFor('readAPI');
-        chai.request(cfg.baseUrl)
-        .get('/auth')
-        .auth(name, pw)
-        .end((err, res) => {
-          expect(err).to.be.null;
+      it('should respond with a JWT, if credentials are valid', () => {
+        let [ name, pw ] = getCredentialsFor('readAPI');
+        return chai.request(cfg.baseUrl).get('/auth').auth(name, pw).then((res) => {
           expect(res).to.have.status(200);
           expect(res.body).to.have.property('token');
-          authTests.token = res.body.token;
-          done();
+          _token = res.body.token;
         });
       });
     });
 
     describe('POST', () => {
 
-      it('should deny access, when no credentials are given', authTests.test401);
-
-      it('should add a new user', (done) => {
-        chai.request(cfg.baseUrl)
-        .post('/auth')
-        .auth('bobby', 'bobby')
-        .send(authTests.testUser)
-        .end((err, res) => {
-          expect(err).to.be.null;
-          expect(res).to.have.status(201);
-          authTests.testMessage(`${authTests.testUser.username} has been createad`, res.body);
-          done();
-        });
+      it('should add a new user', () => {
+        let [ name, pw ] = getCredentialsFor('manageUsers');
+        return chai.request(cfg.baseUrl).post('/auth').auth(name, pw)
+               .send(_testUsers.addTestUser)
+               .then((res) => {
+                 expect(res).to.have.status(201);
+                 testMessage(`${_testUsers.addTestUser.username} has been createad`, res.body);
+               }).catch((err) => {
+                 throw err;
+               });
       });
 
-      it('should respond with 409, when user already exists', (done) => {
-        chai.request(cfg.baseUrl)
-        .post('/auth')
-        .auth('bobby', 'bobby')
-        .send(authTests.testUser)
-        .end((err, res) => {
-          expect(err).to.not.be.null;
-          expect(res).to.have.status(409);
-          authTests.testMessage(`user (${authTests.testUser.username}) already exists`, res.body);
-          done();
+      it('should respond with 409, when user already exists', () => {
+        let [ name, pw ] = getCredentialsFor('manageUsers');
+        return chai.request(cfg.baseUrl).post('/auth').auth(name, pw)
+        .send(_testUsers.addTestUser)
+        .catch((err) => {
+          expect(err).to.have.status(409);
+          testMessage(`user (${_testUsers.addTestUser.username}) already exists`, err.response.res.body);
         });
       });
     });
-  });
+    describe('/auth/:user', () => {
+      describe('PUT', () => {
 
-  describe('/auth/:user', () => {
-    describe('PUT', () => {
-
-      it('should deny access, when no credentials are given', authTests.test401);
-
-      it('should update a user\'s password', (done) => {
-        chai.request(cfg.baseUrl)
-        .put('/auth/' + authTests.testUser.username)
-        .auth('bobby', 'bobby')
-        .send({ password: authTests.testUser.password })
-        .end((err, res) => {
-          expect(err).to.be.null;
-          expect(res).to.have.status(200);
-          authTests.testMessage(`Password for ${authTests.testUser.username} has been updated`, res.body);
-          done();
+        it('should update a user\'s password', () => {
+          let [ name, pw ] = getCredentialsFor('manageUsers');
+          return chai.request(cfg.baseUrl).put('/auth/' + _testUsers.addTestUser.username)
+          .auth(name, pw)
+          .send({ password: _testUsers.addTestUser.password })
+          .then((res) => {
+            expect(res).to.have.status(200);
+            testMessage(`${_testUsers.addTestUser.username} has been updated`, res.body);
+          });
         });
-      });
-    });
 
-    describe('DELETE', () => {
-
-      it('should deny access, when no credentials are given', authTests.test401);
-
-      it('should delete a user', (done) => {
-        chai.request(cfg.baseUrl)
-        .delete('/auth/' + authTests.testUser.username)
-        .auth('bobby', 'bobby')
-        .end((err, res) => {
-          expect(err).to.be.null;
-          expect(res).to.have.status(200);
-          authTests.testMessage(`${authTests.testUser.username} has been deleted`, res.body);
-          done();
+        it('should let unprivileged users update their own password', () => {
+          let [ name, pw ] = getCredentialsFor('addTestUser');
+          return chai.request(cfg.baseUrl).put('/auth/' + _testUsers.addTestUser.username)
+          .auth(name, pw)
+          .send({ password: _testUsers.addTestUser.password })
+          .then((res) => {
+            expect(res).to.have.status(200);
+            testMessage(`Password for ${_testUsers.username} has been updated`, res.body);
+          });
         });
+
+        it('should deny unprivileged users updating others password', () => {
+          let [ name, pw ] = getCredentialsFor('addTestUser');
+          return chai.request(cfg.baseUrl).put('/auth/' + _testUsers.readAPI.username)
+          .auth(name, pw)
+          .send({ password: _testUsers.readAPI.password })
+          .catch((err) => {
+            expect(err).to.have.status(200);
+            testMessage(`${_testUsers.username} has been updated`, err.response.res.body);
+          });
+        });
+
       });
 
-      it('should respond with 404, when user is not found', (done) => {
-        chai.request(cfg.baseUrl)
-        .delete('/auth/' + authTests.testUser.username)
-        .auth('bobby', 'bobby')
-        .end((err, res) => {
-          expect(err).to.not.be.null;
-          expect(res).to.have.status(404);
-          done();
+      describe('DELETE', () => {
+
+        it('should delete a user', () => {
+          let [ name, pw ] = getCredentialsFor('manageUsers');
+          return chai.request(cfg.baseUrl)
+          .delete('/auth/' + _testUsers.deleteTestUser.username)
+          .auth(name, pw)
+          .then((res) => {
+            expect(res).to.have.status(200);
+            testMessage(`${_testUsers.username} has been deleted`, res.body);
+          });
+        });
+
+        it('should respond with 404, when user is not found', () => {
+          let [ name, pw ] = getCredentialsFor('manageUsers');
+          return chai.request(cfg.baseUrl)
+          .delete('/auth/' + _testUsers.deleteTestUser.username)
+          .auth(name, pw)
+          .catch((err) => {
+            expect(err).to.have.status(404);
+          });
         });
       });
     });
   });
 };
 
-module.exports = authTests;
+module.exports = {
+  token: _token,
+  accessTypes: _.keys(_accessDefaults),
+  testUsers: _testUsers,
+  run: run
+};
