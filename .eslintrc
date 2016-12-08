@@ -27,7 +27,9 @@
     "logVerbose": true,
     "logDebug": true,
     "describe": true,
-    "it": true
+    "it": true,
+    "before": true,
+    "after": true
   },
 
   "rules": {

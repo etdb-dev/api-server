@@ -7,14 +7,7 @@ const config = require('../config');
 const mw = require('../middleware');
 const User = require('../db/user');
 
-let authController = {
-  accessDefaults: {
-    'writeAPI': false,
-    'readAPI': true,
-    'manageUsers': false,
-    'isAdmin': false
-  }
-};
+let authController = {};
 
 authController.getToken = (req, res, next) => {
   mw.canAccess(req, res, () => {
@@ -83,7 +76,10 @@ authController.updateUser = (req, res) => {
       updates.access = grantedBy === 'self' ? req.tokenPayload.access : _.assign(authController.accessDefaults, req.body.access || {});;
     }
 
-    User.findOneAndUpdate({ username: req.params.uname }, updates).then((updatedDoc) => {
+    User.findOne({ username: req.params.uname }).then((userDoc) => {
+      userDoc = _.assign(userDoc, updates);
+      return userDoc.save();
+    }).then((updatedDoc) => {
       let msg = `${updatedDoc.username} has been updated`;
       logSuccess(msg);
       res.json({ message: msg });

@@ -1,39 +1,80 @@
 'use strict';
 
 const _ = require('lodash');
+const Promise = require('bluebird');
 const chai = require('chai');
 const expect = chai.expect;
-chai.use(require('chai-http'));
 
 const db = require('../src/db');
-const User = require('../src/db/user');
-const authTests = require('./auth');
+const User = db.user;
 require('../src/log')();
+
+const authTests = require('./auth');
 //const appsTests = require('./apps');
 
-describe('Server', () => {
+let _testUsersInDB = [];
 
-  it('should be running', done => {
-    require('fs').stat('./pid', (err, stats) => {
-      expect(err).to.equal(null, 'Please run the server (npm start) before testing the API!\n');
-      expect(stats.isFile()).to.be.true;
-      done();
+let runTests = () => {
+
+  return new Promise((resolve, reject) => {
+    describe('ETdb API v1', () => {
+
+      before(setup);
+      after(cleanup);
+
+      describe('Server', () => {
+
+        it('should be running', done => {
+          require('fs').stat('./pid', (err, stats) => {
+            expect(err).to.equal(null, 'Please run the server (npm start) before testing the API!\n');
+            expect(stats.isFile()).to.be.true;
+            done();
+          });
+        });
+
+      });
+
+      describe('/auth', () => {
+        authTests.run('/auth');
+      });
+
+      describe('/auth/:user', () => {
+        authTests.run('/auth/:user');
+      });
     });
   });
 
-  it('should create temporary test users', done => {
-    db.connect().then(() => {
-      let testUsers = authTests.testUsers;
-      let users = [];
-      _.forOwn(testUsers, (val, key) => users.push(new User(val)));
-      User.create(users).then((docs) => {
-        expect(docs.length).to.equal(users.length);
-        done();
-      }).catch(done);
+};
+
+let setup = () => {
+  db.connect().then(() => {
+    let testUsers = authTests.testUsers;
+    _.forOwn(testUsers, (userData) => !userData.noauto ? _testUsersInDB.push(new User(userData)) : void 0);
+    User.create(_testUsersInDB).then((docs) => {
+      expect(docs.length).to.equal(_testUsersInDB.length);
     });
   });
+};
 
-});
+let cleanup = () => {
+  describe('Cleanup', () => {
+    it('should delete all test users', () => {
+      let testUser_ids = _.map(_testUsersInDB, (user) => user._id);
+      return User.remove({ _id: { $in: testUser_ids } }).then((delCmd) => {
+        expect(delCmd.result.ok).to.equal(1);
+        expect(delCmd.result.n).to.equal(_testUsersInDB.length - 1);
+      });
+    });
+  });
+};
 
-// authTests.run();
-//appsTests();
+runTests();
+
+module.exports = {
+  testUsersInDB: _testUsersInDB,
+  addUserToInDB: (name) => {
+    User.findOne({ username: name }).then((userDoc) => {
+      _testUsersInDB.push(userDoc);
+    });
+  }
+};
