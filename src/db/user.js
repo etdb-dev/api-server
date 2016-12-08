@@ -9,7 +9,7 @@ const setPassword = function(next) {
 
   if (!this.isModified('password')) {
     logDebug('password not modified');
-    return;
+    next();
   }
   hashPassword(this.password).then((hash) => {
     self.password = hash;
