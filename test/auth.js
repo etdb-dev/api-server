@@ -1,17 +1,14 @@
 'use strict';
 
 const _ = require('lodash');
-const Promise = require('bluebird');
 const chai = require('chai');
 chai.use(require('chai-http'));
 const expect = chai.expect;
+
 const cfg = require('./config.json');
 
 const _accessDefaults = require('../src/const').accessDefaults;
-const noRights = _.mapValues(_accessDefaults, (value) => {
-
-  return false;
-});
+const noRights = _.mapValues(_accessDefaults, () => false);
 
 let _token;
 
@@ -70,48 +67,51 @@ let getCredentialsFor = (accessType) => {
   return [ userObj.username, userObj.password ];
 };
 
-let run = () => {
-  return new Promise((resolve) => {
+let run = (route) => {
+  switch (route) {
+    case '/auth':
+      describe('GET', () => {
 
-    describe('GET', () => {
+        it('should deny access, when no credentials are given', test401);
 
-      it('should deny access, when no credentials are given', test401);
-
-      it('should respond with a JWT, if credentials are valid', () => {
-        let [ name, pw ] = getCredentialsFor('readAPI');
-        return chai.request(cfg.baseUrl).get('/auth').auth(name, pw).then((res) => {
-          expect(res).to.have.status(200);
-          expect(res.body).to.have.property('token');
-          _token = res.body.token;
+        it('should respond with a JWT, if credentials are valid', () => {
+          let [ name, pw ] = getCredentialsFor('readAPI');
+          return chai.request(cfg.baseUrl).get('/auth').auth(name, pw).then((res) => {
+            expect(res).to.have.status(200);
+            expect(res.body).to.have.property('token');
+            _token = res.body.token;
+          });
         });
       });
-    });
 
-    describe('POST', () => {
+      describe('POST', () => {
 
-      it('should add a new user', () => {
-        let [ name, pw ] = getCredentialsFor('manageUsers');
-        return chai.request(cfg.baseUrl).post('/auth').auth(name, pw)
-               .send(_testUsers.addTestUser)
-               .then((res) => {
-                 expect(res).to.have.status(201);
-                 testMessage(`${_testUsers.addTestUser.username} has been createad`, res.body);
-               }).catch((err) => {
-                 throw err;
-               });
-      });
+        it('should add a new user', () => {
+          let [ name, pw ] = getCredentialsFor('manageUsers');
+          return chai.request(cfg.baseUrl).post('/auth').auth(name, pw)
+                 .send(_testUsers.addTestUser)
+                 .then((res) => {
+                   expect(res).to.have.status(201);
+                   testMessage(`${_testUsers.addTestUser.username} has been createad`, res.body);
+                   module.parent.exports.addUserToInDB('addTestUser');
+                 }).catch((err) => {
+                   throw err;
+                 });
+        });
 
-      it('should respond with 409, when user already exists', () => {
-        let [ name, pw ] = getCredentialsFor('manageUsers');
-        return chai.request(cfg.baseUrl).post('/auth').auth(name, pw)
-        .send(_testUsers.addTestUser)
-        .catch((err) => {
-          expect(err).to.have.status(409);
-          testMessage(`user (${_testUsers.addTestUser.username}) already exists`, err.response.res.body);
+        it('should respond with 409, when user already exists', () => {
+          let [ name, pw ] = getCredentialsFor('manageUsers');
+          return chai.request(cfg.baseUrl).post('/auth').auth(name, pw)
+          .send(_testUsers.addTestUser)
+          .catch((err) => {
+            expect(err).to.have.status(409);
+            testMessage(`user (${_testUsers.addTestUser.username}) already exists`, err.response.res.body);
+          });
         });
       });
-    });
-    describe('/auth/:user', () => {
+      break;
+
+    case '/auth/:user':
       describe('PUT', () => {
 
         it('should update a user\'s password', () => {
@@ -132,7 +132,7 @@ let run = () => {
           .send({ password: _testUsers.addTestUser.password })
           .then((res) => {
             expect(res).to.have.status(200);
-            testMessage(`Password for ${_testUsers.username} has been updated`, res.body);
+            testMessage(`${_testUsers.addTestUser.username} has been updated`, res.body);
           });
         });
 
@@ -142,8 +142,7 @@ let run = () => {
           .auth(name, pw)
           .send({ password: _testUsers.readAPI.password })
           .catch((err) => {
-            expect(err).to.have.status(200);
-            testMessage(`${_testUsers.username} has been updated`, err.response.res.body);
+            expect(err).to.have.status(401);
           });
         });
 
@@ -158,7 +157,7 @@ let run = () => {
           .auth(name, pw)
           .then((res) => {
             expect(res).to.have.status(200);
-            testMessage(`${_testUsers.username} has been deleted`, res.body);
+            testMessage(`${_testUsers.deleteTestUser.username} has been deleted`, res.body);
           });
         });
 
@@ -172,8 +171,9 @@ let run = () => {
           });
         });
       });
-    });
-  });
+      break;
+  }
+  
 };
 
 module.exports = {

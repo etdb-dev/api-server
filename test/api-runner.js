@@ -12,7 +12,7 @@ require('../src/log')();
 const authTests = require('./auth');
 //const appsTests = require('./apps');
 
-let testUsersInDB = [];
+let _testUsersInDB = [];
 
 let runTests = () => {
 
@@ -35,9 +35,12 @@ let runTests = () => {
       });
 
       describe('/auth', () => {
-        authTests.run();
+        authTests.run('/auth');
       });
-      
+
+      describe('/auth/:user', () => {
+        authTests.run('/auth/:user');
+      });
     });
   });
 
@@ -46,20 +49,32 @@ let runTests = () => {
 let setup = () => {
   db.connect().then(() => {
     let testUsers = authTests.testUsers;
-    _.forOwn(testUsers, (userData) => !userData.noauto ? testUsersInDB.push(new User(userData)) : void 0);
-    User.create(testUsersInDB).then((docs) => {
-      expect(docs.length).to.equal(testUsersInDB.length);
+    _.forOwn(testUsers, (userData) => !userData.noauto ? _testUsersInDB.push(new User(userData)) : void 0);
+    User.create(_testUsersInDB).then((docs) => {
+      expect(docs.length).to.equal(_testUsersInDB.length);
     });
   });
 };
 
 let cleanup = () => {
-  return new Promise((resolve, reject) => {
-    let testUser_ids = _.map(testUsersInDB, (user) => user._id);
-    return User.remove({ _id: { $in: testUser_ids } })
-    .then(resolve)
-    .catch(reject);
+  describe('Cleanup', () => {
+    it('should delete all test users', () => {
+      let testUser_ids = _.map(_testUsersInDB, (user) => user._id);
+      return User.remove({ _id: { $in: testUser_ids } }).then((delCmd) => {
+        expect(delCmd.result.ok).to.equal(1);
+        expect(delCmd.result.n).to.equal(_testUsersInDB.length - 1);
+      });
+    });
   });
 };
 
 runTests();
+
+module.exports = {
+  testUsersInDB: _testUsersInDB,
+  addUserToInDB: (name) => {
+    User.findOne({ username: name }).then((userDoc) => {
+      _testUsersInDB.push(userDoc);
+    });
+  }
+};
