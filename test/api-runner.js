@@ -7,12 +7,21 @@ const expect = chai.expect;
 
 const db = require('../src/db');
 const User = db.user;
+const authController = require('../src/controller/auth');
 require('../src/log')();
 
 const authTests = require('./auth');
-//const appsTests = require('./apps');
+const appsTests = require('./apps');
 
 let _testUsersInDB = [];
+
+let setTokenFor = (accessType) => {
+  let targetUser = authTests.testUsers[accessType];
+  targetUser.token = authController.signToken({
+    username: targetUser.username,
+    access: targetUser.access
+  });
+};
 
 let runTests = () => {
 
@@ -41,17 +50,22 @@ let runTests = () => {
       describe('/auth/:user', () => {
         authTests.run('/auth/:user');
       });
+
+      describe('/apps', () => {
+        appsTests.run('/apps');
+      });
     });
   });
 
 };
 
 let setup = () => {
-  db.connect().then(() => {
+  return db.connect().then(() => {
     let testUsers = authTests.testUsers;
     _.forOwn(testUsers, (userData) => !userData.noauto ? _testUsersInDB.push(new User(userData)) : void 0);
     User.create(_testUsersInDB).then((docs) => {
       expect(docs.length).to.equal(_testUsersInDB.length);
+      _.each(testUsers, (user, key) => setTokenFor(key));
     });
   });
 };
