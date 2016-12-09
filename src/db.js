@@ -8,7 +8,8 @@ const config = require('./config');
 
 let db = {
   connection: null,
-  user: require('./db/user')
+  user: require('./db/user'),
+  app: require('./db/app')
 };
 
 db.connect = () => {
