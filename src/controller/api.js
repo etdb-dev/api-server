@@ -25,12 +25,12 @@ apiController.addApp = (req, res, next) => {
         logSuccess(msg + ' by ' + tokenData.username);
         res.status(201).json({ message: msg });
       }).catch(() => res.status(409).json({
-        message: `(${data.name}) already exists`
+        message: `${data.name} already exists`
       }));
     })
     .catch((missing) => {
       res.status(400).json({
-        msg: 'Please provide values for all mandatory fields!',
+        message: 'Please provide values for all mandatory fields!',
         missing: missing
       });
     });
@@ -42,7 +42,7 @@ apiController.listApps = (req, res, next) => {
   App.find(findFilter).then((appDocs) => {
     appDocs = _.each(appDocs, doc => _.omit(doc, '_id'));
     return res.json({
-      msg: 'applist' + req.param.appId ? ' for ' + req.param.appId : '',
+      message: 'applist' + req.param.appId ? ' for ' + req.param.appId : '',
       apps: appDocs
     });
   });

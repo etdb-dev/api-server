@@ -7,6 +7,7 @@ const expect = chai.expect;
 
 const db = require('../src/db');
 const User = db.user;
+const App = db.app;
 const authController = require('../src/controller/auth');
 require('../src/log')();
 
@@ -77,6 +78,12 @@ let cleanup = () => {
       return User.remove({ _id: { $in: testUser_ids } }).then((delCmd) => {
         expect(delCmd.result.ok).to.equal(1);
         expect(delCmd.result.n).to.equal(_testUsersInDB.length - 1);
+      });
+    });
+    it('should delete the test app', () => {
+      return App.remove({ name: 'testApp' }).then((delCmd) => {
+        expect(delCmd.result.ok).to.equal(1);
+        expect(delCmd.result.n).to.equal(1);
       });
     });
   });
