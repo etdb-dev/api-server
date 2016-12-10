@@ -56,6 +56,9 @@ let runTests = () => {
       describe('/v1/apps', () => {
         appsTests.run('/v1/apps');
       });
+      describe('/v1/apps/:appId', () => {
+        appsTests.run('/v1/apps/:appId');
+      });
     });
   });
 
@@ -73,14 +76,14 @@ let setup = () => {
 
 let cleanup = () => {
   describe('Cleanup', () => {
-    it('should delete all test users', () => {
+    it('Delete all test users', () => {
       let testUser_ids = _.map(_testUsersInDB, (user) => user._id);
       return User.remove({ _id: { $in: testUser_ids } }).then((delCmd) => {
         expect(delCmd.result.ok).to.equal(1);
         expect(delCmd.result.n).to.equal(_testUsersInDB.length - 1);
       });
     });
-    it('should delete the test app', () => {
+    it('Delete the test app', () => {
       return App.remove({ name: 'testApp' }).then((delCmd) => {
         expect(delCmd.result.ok).to.equal(1);
         expect(delCmd.result.n).to.equal(1);

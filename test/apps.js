@@ -74,6 +74,22 @@ let run = (route) => {
         });
       });
       break;
+    case '/v1/apps/:appId':
+      describe('GET', () => {
+        it('should get the data for one app', () => {
+          return chai.request(cfg.baseUrl)
+            .get(route.replace(':appId', 'testApp'))
+            .set('x-access-token', testUsers.readAPI.token)
+            .then((res) => {
+              testMessage('applist', res.body);
+              expect(res.body.apps).to.be.an.instanceof(Array);
+              expect(res.body.apps.length).to.equal(1);
+              expect(res.body.apps[0]).to.have.property('name');
+              expect(res.body.apps[0]).to.have.property('publisher');
+              expect(res.body.apps[0]).to.have.property('store_url');
+            });
+        });
+      });
   }
 };
 
