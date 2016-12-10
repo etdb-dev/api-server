@@ -60,6 +60,7 @@ let run = (route) => {
       });
 
       describe('GET', () => {
+
         it('should get a list of all apps', () => {
           return chai.request(cfg.baseUrl)
             .get(route)
@@ -72,10 +73,12 @@ let run = (route) => {
               expect(res.body.apps[0]).to.have.property('store_url');
             });
         });
+
       });
       break;
     case '/v1/apps/:appId':
       describe('GET', () => {
+
         it('should get the data for one app', () => {
           return chai.request(cfg.baseUrl)
             .get(route.replace(':appId', 'testApp'))
@@ -89,9 +92,11 @@ let run = (route) => {
               expect(res.body.apps[0]).to.have.property('store_url');
             });
         });
+
       });
 
       describe('PUT', () => {
+
         it('should update the data of one app', () => {
           let updateData = {
             name: 'testAppChanged',
@@ -107,7 +112,22 @@ let run = (route) => {
               expect(res.body.updated).to.eql(updateData);
             });
         });
+
       });
+
+      describe('DELETE', () => {
+
+        it('should delete an app', () => {
+          return chai.request(cfg.baseUrl)
+            .delete(route.replace(':appId', 'testAppChanged'))
+            .set('x-access-token', testUsers.writeAPI.token)
+            .then((res) => {
+              testMessage('testAppChanged has been deleted', res.body);
+            });
+        });
+        
+      });
+      break;
   }
 };
 

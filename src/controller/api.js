@@ -64,6 +64,17 @@ apiController.updateApp = (req, res, next) => {
   }, { accessType: 'writeAPI' });
 };
 
+apiController.deleteApp = (req, res) => {
+  mw.canAccess(req, res, () => {
+    return App.findOneAndRemove({ name: req.params.appId }, '-_id -__v')
+      .then((removedDoc) => {
+        res.json({
+          message: removedDoc.name + ' has been deleted'
+        });
+      });
+  }, { accessType: 'writeAPI' });
+};
+
 let validateInput = (expected, input) => {
   return new Promise((resolve, reject) => {
     let missingFields = _.difference(expected, _.keys(input));
