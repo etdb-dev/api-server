@@ -179,7 +179,7 @@ function colorize(msg, isTstamp) {
  */
 function buildModuleTag() {
   let appDir = path.dirname(require.main.filename);
-  let fnRX = new RegExp(`\\(?${appDir}\\/((?!node_modules)(.*))\.js:\\d+:\\d+\\)?`);
+  let fnRX = new RegExp(`\\(?${appDir}\\/(?!node_modules)(.*)\.js(:\\d+:\\d+)\\)?`);
   Error.stackTraceLimit = config.get('stackTraceLimit') || 25;
   let stack = new Error().stack;
   stack = stack.split('\n').filter((line) => {
@@ -188,7 +188,7 @@ function buildModuleTag() {
            line.indexOf('formatFS') === -1;
   }).join('\n');
   let fnMatch = stack.match(fnRX);
-  return fnMatch ? '/' + (fnMatch[1] || fnMatch[2]) : 'not/found';
+  return fnMatch ? `/${fnMatch[1]}${config.get('longLogTags') ? fnMatch[2] : ''}` : 'not/found';
 }
 
 let registerGlobals = () => {
