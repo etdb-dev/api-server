@@ -58,6 +58,21 @@ let run = (route) => {
         });
 
       });
+
+      describe('GET', () => {
+        it('should get a list of all apps', () => {
+          return chai.request(cfg.baseUrl)
+            .get(route)
+            .set('x-access-token', testUsers.readAPI.token)
+            .then((res) => {
+              testMessage('applist', res.body);
+              expect(res.body.apps).to.be.an.instanceof(Array);
+              expect(res.body.apps[0]).to.have.property('name');
+              expect(res.body.apps[0]).to.have.property('publisher');
+              expect(res.body.apps[0]).to.have.property('store_url');
+            });
+        });
+      });
       break;
   }
 };

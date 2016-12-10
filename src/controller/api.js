@@ -38,14 +38,13 @@ apiController.addApp = (req, res, next) => {
 };
 
 apiController.listApps = (req, res, next) => {
-  let findFilter = req.param.appId ? { name: req.param.appId } : {};
-  App.find(findFilter).then((appDocs) => {
-    appDocs = _.each(appDocs, doc => _.omit(doc, '_id'));
-    return res.json({
-      message: 'applist' + req.param.appId ? ' for ' + req.param.appId : '',
+  mw.canAccess(req, res, () => {
+    let findFilter = req.param.appId ? { name: req.param.appId } : {};
+    App.find(findFilter, '-_id -__v').then((appDocs) => res.json({
+      message: 'applist',
       apps: appDocs
-    });
-  });
+    }));
+  }, { accessType: 'readAPI' });
 };
 
 let validateInput = (expected, input) => {
