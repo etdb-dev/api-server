@@ -8,7 +8,7 @@ const noRights = _.mapValues(_accessDefaults, () => false);
 let createAccessObjectFor = (accessType) => {
   let accessValue = {};
   accessValue[accessType] = true;
-  return _.assign(noRights, accessValue);
+  return _.defaults(accessValue, noRights);
 };
 
 let _testUsers = _.reduce(_accessDefaults, (acc, val, key) => {
