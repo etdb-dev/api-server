@@ -39,12 +39,29 @@ apiController.addApp = (req, res, next) => {
 
 apiController.listApps = (req, res, next) => {
   mw.canAccess(req, res, () => {
-    let findFilter = req.param.appId ? { name: req.param.appId } : {};
+    let findFilter = req.params.appId ? { name: req.params.appId } : {};
     App.find(findFilter, '-_id -__v').then((appDocs) => res.json({
       message: 'applist',
       apps: appDocs
     }));
   }, { accessType: 'readAPI' });
+};
+
+apiController.updateApp = (req, res, next) => {
+  mw.canAccess(req, res, () => {
+    let appId = req.params.appId;
+    let clientDoc;
+    return App.findOne({ name: appId }).then((appDoc) => {
+      _.assign(appDoc, req.body);
+      clientDoc = _.omit(appDoc._doc, '_id', '__v');
+      return appDoc.save();
+    }).then(() => {
+      res.json({
+        message: req.params.appId + ' has been updated',
+        updated: clientDoc
+      });
+    });
+  }, { accessType: 'writeAPI' });
 };
 
 let validateInput = (expected, input) => {

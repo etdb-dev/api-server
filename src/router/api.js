@@ -9,5 +9,6 @@ apiRouter.use('/v1', middleware.validateToken);
 apiRouter.post('/v1/apps', apiController.addApp);
 apiRouter.get('/v1/apps', apiController.listApps);
 apiRouter.get('/v1/apps/:appId', apiController.listApps);
+apiRouter.put('/v1/apps/:appId', apiController.updateApp);
 
 module.exports = apiRouter;

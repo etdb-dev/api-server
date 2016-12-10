@@ -90,6 +90,24 @@ let run = (route) => {
             });
         });
       });
+
+      describe('PUT', () => {
+        it('should update the data of one app', () => {
+          let updateData = {
+            name: 'testAppChanged',
+            publisher: '/v1/app/:appId PUT test',
+            store_url: 'https://play.updated.com'
+          };
+          return chai.request(cfg.baseUrl)
+            .put(route.replace(':appId', 'testApp'))
+            .set('x-access-token', testUsers.writeAPI.token)
+            .send(updateData)
+            .then((res) => {
+              testMessage('testApp has been updated', res.body);
+              expect(res.body.updated).to.eql(updateData);
+            });
+        });
+      });
   }
 };
 

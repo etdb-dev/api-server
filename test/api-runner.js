@@ -83,8 +83,8 @@ let cleanup = () => {
         expect(delCmd.result.n).to.equal(_testUsersInDB.length - 1);
       });
     });
-    it('Delete the test app', () => {
-      return App.remove({ name: 'testApp' }).then((delCmd) => {
+    it('Delete all test apps', () => {
+      return App.remove({ name: new RegExp('^testApp.*') }).then((delCmd) => {
         expect(delCmd.result.ok).to.equal(1);
         expect(delCmd.result.n).to.equal(1);
       });
