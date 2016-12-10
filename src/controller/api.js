@@ -29,12 +29,23 @@ apiController.addApp = (req, res, next) => {
       }));
     })
     .catch((missing) => {
-      res.status().json({
-        msg: 'Please provide the missing fields!',
+      res.status(400).json({
+        msg: 'Please provide values for all mandatory fields!',
         missing: missing
       });
     });
-  }, 'writeAPI');
+  }, { accessType: 'writeAPI' });
+};
+
+apiController.listApps = (req, res, next) => {
+  let findFilter = req.param.appId ? { name: req.param.appId } : {};
+  App.find(findFilter).then((appDocs) => {
+    appDocs = _.each(appDocs, doc => _.omit(doc, '_id'));
+    return res.json({
+      msg: 'applist' + req.param.appId ? ' for ' + req.param.appId : '',
+      apps: appDocs
+    });
+  });
 };
 
 let validateInput = (expected, input) => {

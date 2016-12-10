@@ -6,6 +6,6 @@ const middleware = require.main.require('./src/middleware');
 
 apiRouter.use('/v1', middleware.validateToken);
 
-apiRouter.post('/v1/app', apiController.addApp);
+apiRouter.post('/v1/apps', apiController.addApp);
 
 module.exports = apiRouter;

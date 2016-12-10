@@ -52,8 +52,8 @@ let runTests = () => {
         authTests.run('/auth/:user');
       });
 
-      describe('/apps', () => {
-        appsTests.run('/apps');
+      describe('/v1/apps', () => {
+        appsTests.run('/v1/apps');
       });
     });
   });
