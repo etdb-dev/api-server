@@ -77,7 +77,7 @@
  * @apiGroup  Auth
  * @apiPermission manageUsers
  * @apiHeader {String} Authorization Basic [b64string]
- * @apiSuccessExample {json} Userlist
+ * @apiSuccessExample {json} List of users
  * {
  *   "msg": "Userlist",
  *   "users": [
