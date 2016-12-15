@@ -66,32 +66,11 @@ describe('Database models', () => {
 
     const SPI = db.spi;
 
-    let testSPI = new SPI({
-      name: 'Gimme-Their-Data Inc.',
-      endpoint_url: 'https://gimme.their.data.com/testApp',
-      encrypted: true,
-      protocol: 'HTTPS',
-      content_type: 'application/json',
-      cert: {
-        sha_value: '9B 0C 57 46 24 81 81 97 1D 93 43 37 59 56 30 4E F9 D0 DD 13 FE 76 DC 4B EB 4E 98 27 60 2E 09 4C',
-        cname: '*.their.data.com',
-        ca: 'DigiCert SHA2 High Assurance Server CA',
-        alternative_names: [ '*.your.data.com' ],
-        validity: {
-          not_after: new Date(),
-          not_before: new Date()
-        }
-      },
-      data: [{
-        name: 'testAppUserInfo',
-        provided_information: '{ user: { name: \'screwedOne\', email: \'screwed@mobileapp.com\' } }',
-        sensibility: 3
-      }, {
-        name: 'testAppAdverts',
-        provided_information: '{ adsShown: 17, adsClicked: 0 }',
-        sensibility: 1
-      }]
-    });
+    let spiData = require('./bench/json/spis.json')[0];
+    spiData.cert.validity.not_after = new Date();
+    spiData.cert.validity.not_before = new Date();
+
+    let testSPI = new SPI(spiData);
 
     it('should have a name', () => {
       expect(testSPI).to.have.property('name', 'Gimme-Their-Data Inc.');

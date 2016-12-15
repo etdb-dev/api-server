@@ -11,9 +11,9 @@ const App = db.app;
 const authController = require('../src/controller/auth');
 require('../src/log')();
 
-const testUsers = require('./testusers');
+const testUsers = require('./bench/users');
 const authTests = require('./auth');
-const appsTests = require('./apps');
+const appsTests = require('./api/apps');
 
 let _testUsersInDB = [];
 

@@ -4,8 +4,8 @@ const chai = require('chai');
 chai.use(require('chai-http'));
 const expect = chai.expect;
 
-const testUsers = require('./testusers');
-const cfg = require('./config.json');
+const testUsers = require('../bench/users');
+const cfg = require('../config.json');
 
 let testMessage = (expectedMessage, resBody) => {
   expect(resBody).to.have.property('message');
@@ -125,7 +125,7 @@ let run = (route) => {
               testMessage('testAppChanged has been deleted', res.body);
             });
         });
-        
+
       });
       break;
   }

@@ -7,7 +7,7 @@ const expect = chai.expect;
 
 const cfg = require('./config.json');
 
-const testUsers = require('./testusers');
+const testUsers = require('./bench/users');
 
 let test401 = () => {
   chai.request(cfg.baseUrl).get('/auth').end((err) => {

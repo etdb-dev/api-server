@@ -2,7 +2,7 @@
 
 const _ = require('lodash');
 
-const _accessDefaults = require('../src/const').accessDefaults;
+const _accessDefaults = require('../../src/const').accessDefaults;
 const noRights = _.mapValues(_accessDefaults, () => false);
 
 let createAccessObjectFor = (accessType) => {
@@ -22,26 +22,6 @@ let _testUsers = _.reduce(_accessDefaults, (acc, val, key) => {
   return acc;
 }, {});
 
-_testUsers.addTestUser = {
-  username: 'addTestUser',
-  password: 'addTestUser',
-  access: {
-    'readAPI': false,
-    'writeAPI': false,
-    'isAdmin': false,
-    'manageUsers': false
-  },
-  noauto: true
-};
-_testUsers.deleteTestUser = {
-  username: 'deleteTestUser',
-  password: 'deleteTestUser',
-  access: {
-    'readAPI': false,
-    'writeAPI': false,
-    'isAdmin': false,
-    'manageUsers': false
-  }
-};
+_.assign(_testUsers, require('./json/users.json'));
 
 module.exports = _testUsers;
