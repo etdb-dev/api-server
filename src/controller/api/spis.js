@@ -22,4 +22,15 @@ spisController.addSPI = (req, res) => {
   }, { accessType: 'writeAPI' });
 };
 
+spisController.listSPIs = (req, res) => {
+  mw.canAccess(req, res, () => {
+    SPI.find().then((docs) => {
+      res.json({
+        message: 'list of all SPIs',
+        spis: docs
+      });
+    });
+  }, { accessType: 'readAPI' });
+};
+
 module.exports = spisController;

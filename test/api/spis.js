@@ -1,5 +1,6 @@
 'use strict';
 
+const _ = require('lodash');
 const chai = require('chai');
 chai.use(require('chai-http'));
 const expect = chai.expect;
@@ -19,6 +20,7 @@ let run = (route) => {
       describe('POST', () => {
 
         it('should add a new SPI', () => {
+          let testSPIsInDB = module.parent.exports.testSPIsInDB;
           return chai.request(cfg.baseUrl)
             .post(route)
             .set('x-access-token', testUsers.writeAPI.token)
@@ -27,7 +29,7 @@ let run = (route) => {
               expect(res).to.have.status(201);
               testMessage('Gimme-Their-Data Inc. has been added', res.body);
               expect(res.body).to.have.property('added');
-              module.parent.exports.testSPIsInDB.push(res.body.added._id);
+              testSPIsInDB.push(res.body.added._id);
             });
         });
         it('should respond with 400 when error occurs', () => {
@@ -42,6 +44,21 @@ let run = (route) => {
               expect(err).to.have.status(400);
               testMessage('Malformed request body', err.response.body);
               expect(err.response.body.err).to.exist;
+            });
+        });
+      });
+
+      describe('GET', () => {
+        it('should return a list of all SPIs', () => {
+          let testSPIsInDB = module.parent.exports.testSPIsInDB;
+          return chai.request(cfg.baseUrl)
+            .get(route)
+            .set('x-access-token', testUsers.readAPI.token)
+            .then((res) => {
+              expect(res).to.have.status(200);
+              testMessage('list of all SPIs', res.body);
+              expect(res.body).to.have.property('spis');
+              expect(_.findIndex(res.body.spis, [ '_id', testSPIsInDB[0] ])).to.be.above(-1);
             });
         });
       });
