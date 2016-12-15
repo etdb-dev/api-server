@@ -7,12 +7,23 @@ const expect = chai.expect;
 
 const db = require('../src/db');
 const User = db.user;
+const App = db.app;
+const authController = require('../src/controller/auth');
 require('../src/log')();
 
+const testUsers = require('./testusers');
 const authTests = require('./auth');
-//const appsTests = require('./apps');
+const appsTests = require('./apps');
 
 let _testUsersInDB = [];
+
+let setTokenFor = (accessType) => {
+  let targetUser = testUsers[accessType];
+  targetUser.token = authController.signToken({
+    username: targetUser.username,
+    access: targetUser.access
+  });
+};
 
 let runTests = () => {
 
@@ -41,28 +52,40 @@ let runTests = () => {
       describe('/auth/:user', () => {
         authTests.run('/auth/:user');
       });
+
+      describe('/v1/apps', () => {
+        appsTests.run('/v1/apps');
+      });
+      describe('/v1/apps/:appId', () => {
+        appsTests.run('/v1/apps/:appId');
+      });
     });
   });
 
 };
 
 let setup = () => {
-  db.connect().then(() => {
-    let testUsers = authTests.testUsers;
+  return db.connect().then(() => {
     _.forOwn(testUsers, (userData) => !userData.noauto ? _testUsersInDB.push(new User(userData)) : void 0);
     User.create(_testUsersInDB).then((docs) => {
       expect(docs.length).to.equal(_testUsersInDB.length);
+      _.each(testUsers, (user, key) => setTokenFor(key));
     });
   });
 };
 
 let cleanup = () => {
   describe('Cleanup', () => {
-    it('should delete all test users', () => {
+    it('Delete all test users', () => {
       let testUser_ids = _.map(_testUsersInDB, (user) => user._id);
       return User.remove({ _id: { $in: testUser_ids } }).then((delCmd) => {
         expect(delCmd.result.ok).to.equal(1);
         expect(delCmd.result.n).to.equal(_testUsersInDB.length - 1);
+      });
+    });
+    it('Delete all test apps', () => {
+      return App.remove({ name: new RegExp('^testApp.*') }).then((delCmd) => {
+        expect(delCmd.result.ok).to.equal(1);
       });
     });
   });

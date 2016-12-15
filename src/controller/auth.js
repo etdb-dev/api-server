@@ -9,16 +9,20 @@ const User = require('../db/user');
 
 let authController = {};
 
+authController.signToken = (tokenData) => {
+  return jwt.sign({
+    username: tokenData.username,
+    access: tokenData.access
+  }, config.get('secret'), {
+    expiresIn: '2h'
+  });
+};
+
 authController.getToken = (req, res, next) => {
   mw.canAccess(req, res, () => {
     logDebug('Creating token');
     let tokenData = req.tokenPayload;
-    let token = jwt.sign({
-      username: tokenData.username,
-      access: tokenData.access
-    }, config.get('secret'), {
-      expiresIn: '2h'
-    });
+    let token = authController.signToken(tokenData);
     res.json({
       message: 'Token for evr\'body!',
       token: token

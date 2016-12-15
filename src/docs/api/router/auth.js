@@ -19,6 +19,7 @@
  * @apiName    GetToken
  * @apiGroup Auth
  * @apiPermission readAPI
+ * @apiVersion 0.1.0
  * @apiHeader {String} Authorization Basic [b64string]
  * @apiExample {curl} fetch a token
  * curl -X GET -H "Authorization: Basic `printf <user>:<pass> | base64`" -H "Cache-Control: no-cache" "https://api.etdb.de/auth"
@@ -29,6 +30,7 @@
  * @apiName AddUser
  * @apiGroup Auth
  * @apiPermission manageUsers
+ * @apiVersion 0.1.0
  * @apiHeader {String} Authorization Basic [b64string]
  * @apiHeader content-type=application/json
  * @apiHeaderExample {json} Data for new user
@@ -53,6 +55,7 @@
  * @apiName UpdateUser
  * @apiGroup Auth
  * @apiPermission manageUsers
+ * @apiVersion 0.1.0
  * @apiHeader {String} Authorization Basic [b64string]
  * @apiHeader content-type=application/json
  * @apiParam :uname Username of account to edit
@@ -68,6 +71,7 @@
  * @apiName DeleteUser
  * @apiGroup Auth
  * @apiPermission manageUsers
+ * @apiVersion 0.1.0
  * @apiParam :uname Username of account to delete
  */
 
@@ -76,8 +80,9 @@
  * @apiName  ListUsers
  * @apiGroup  Auth
  * @apiPermission manageUsers
+ * @apiVersion 0.1.0
  * @apiHeader {String} Authorization Basic [b64string]
- * @apiSuccessExample {json} Userlist
+ * @apiSuccessExample {json} List of users
  * {
  *   "msg": "Userlist",
  *   "users": [
