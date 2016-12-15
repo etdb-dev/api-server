@@ -14,6 +14,7 @@ require('../src/log')();
 const testUsers = require('./bench/users');
 const authTests = require('./auth');
 const appsTests = require('./api/apps');
+const spiTests = require('./api/spis');
 
 let _testUsersInDB = [];
 
@@ -42,7 +43,6 @@ let runTests = () => {
             done();
           });
         });
-
       });
 
       describe('/auth', () => {
@@ -59,6 +59,10 @@ let runTests = () => {
       describe('/v1/apps/:appId', () => {
         appsTests.run('/v1/apps/:appId');
       });
+
+      describe('/v0/spis', () => {
+        spiTests.run('/v0/spis');
+      });
     });
   });
 
@@ -67,8 +71,9 @@ let runTests = () => {
 let setup = () => {
   return db.connect().then(() => {
     _.forOwn(testUsers, (userData) => !userData.noauto ? _testUsersInDB.push(new User(userData)) : void 0);
-    User.create(_testUsersInDB).then((docs) => {
+    return User.create(_testUsersInDB).then((docs) => {
       expect(docs.length).to.equal(_testUsersInDB.length);
+      console.log('getting tokens');
       _.each(testUsers, (user, key) => setTokenFor(key));
     });
   });

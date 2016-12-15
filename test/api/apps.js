@@ -6,11 +6,9 @@ const expect = chai.expect;
 
 const testUsers = require('../bench/users');
 const cfg = require('../config.json');
+const helper = require('../helper');
 
-let testMessage = (expectedMessage, resBody) => {
-  expect(resBody).to.have.property('message');
-  expect(expectedMessage).to.equal(resBody.message);
-};
+let testMessage = helper.testMessage;
 
 let run = (route) => {
 
