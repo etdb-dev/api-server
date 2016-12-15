@@ -3,7 +3,7 @@
 const mongoose = require('mongoose');
 
 const spiSchema = mongoose.Schema({
-  last_modified: { type: Date, required: true, default: new Date() },
+  last_modified: { type: Date },
   endpoint_url: { type: String, required: true },
   encrypted: { type: Boolean, default: false },
   name: { type: String },
@@ -25,6 +25,14 @@ const spiSchema = mongoose.Schema({
     sensibility: { type: Number }
   }]
 });
+
+const setLastModified = function(next) {
+  this.last_modified = new Date();
+  next();
+};
+
+spiSchema.pre('save', setLastModified);
+spiSchema.pre('update', setLastModified);
 
 const model = mongoose.model('SPI', spiSchema);
 module.exports = model;

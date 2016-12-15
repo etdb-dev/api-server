@@ -1,8 +1,17 @@
 'use strict';
 
 const expect = require('chai').expect;
+const db = require('../src/db');
+require('../src/log')();
 
 describe('Database models', () => {
+
+  let connect = (done) => {
+    db.connect().then(done);
+  };
+
+  before(connect);
+
   /*
     name: String,
     last_modified: Date,
@@ -12,7 +21,7 @@ describe('Database models', () => {
    */
   describe('App', () => {
 
-    const App = require('../src/db/app');
+    const App = db.app;
 
     let testApp = new App({
       name: 'testApp',
@@ -55,7 +64,7 @@ describe('Database models', () => {
   */
   describe('SPI', () => {
 
-    const SPI = require('../src/db/spi');
+    const SPI = db.spi;
 
     let testSPI = new SPI({
       name: 'Gimme-Their-Data Inc.',
@@ -99,7 +108,7 @@ describe('Database models', () => {
     it('should have a content_type', () => {
       expect(testSPI).to.have.property('content_type', 'application/json');
     });
-    
+
     it('should have a cert', () => {
       expect(testSPI).to.have.property('cert');
       expect(testSPI.cert).to.be.an('object');
@@ -139,7 +148,7 @@ describe('Database models', () => {
         });
       });
     });
-    
+
     it('should have data', () => {
       expect(testSPI).to.have.property('data');
       expect(testSPI.data).to.be.an.instanceof(Array);
@@ -157,6 +166,22 @@ describe('Database models', () => {
       });
       it('should have a sensibility', () => {
         expect(testSPI.data[0]).to.have.property('sensibility', 3);
+      });
+    });
+
+    it('should update last_modified on save/update', (done) => {
+      let firstSaveDate;
+      testSPI.save()
+      .then((firstSavedDoc) => {
+        expect(firstSavedDoc).to.have.property('last_modified');
+        firstSaveDate = firstSavedDoc.last_modified;
+        SPI.findOne({ name: 'Gimme-Their-Data Inc.' })
+        .then((doc) => {
+          doc.save().then((updatedDoc) => {
+            expect(updatedDoc.last_modified).to.not.eql(firstSaveDate);
+            done();
+          });
+        });
       });
     });
   });

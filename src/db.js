@@ -9,7 +9,8 @@ const config = require('./config');
 let db = {
   connection: null,
   user: require('./db/user'),
-  app: require('./db/app')
+  app: require('./db/app'),
+  spi: require('./db/spi')
 };
 
 db.connect = () => {
