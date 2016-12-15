@@ -11,8 +11,6 @@ const helper = require('../helper');
 
 let testMessage = helper.testMessage;
 
-let addedIds = [];
-
 let run = (route) => {
 
   switch(route) {
@@ -29,7 +27,7 @@ let run = (route) => {
               expect(res).to.have.status(201);
               testMessage('Gimme-Their-Data Inc. has been added', res.body);
               expect(res.body).to.have.property('added');
-              addedIds.push(res.body.added._id);
+              module.parent.exports.testSPIsInDB.push(res.body.added._id);
             });
         });
         it('should respond with 400 when error occurs', () => {

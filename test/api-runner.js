@@ -8,6 +8,7 @@ const expect = chai.expect;
 const db = require('../src/db');
 const User = db.user;
 const App = db.app;
+const SPI = db.spi;
 const authController = require('../src/controller/auth');
 require('../src/log')();
 
@@ -17,6 +18,7 @@ const appsTests = require('./api/apps');
 const spiTests = require('./api/spis');
 
 let _testUsersInDB = [];
+let _testSPIsInDB = [];
 
 let setTokenFor = (accessType) => {
   let targetUser = testUsers[accessType];
@@ -93,6 +95,12 @@ let cleanup = () => {
         expect(delCmd.result.ok).to.equal(1);
       });
     });
+    it('Delete all test SPIs', () => {
+      return SPI.remove({ _id: { $in: _testSPIsInDB } }).then((delCmd) => {
+        expect(delCmd.result.ok).to.equal(1);
+        expect(delCmd.result.n).to.equal(_testSPIsInDB.length);
+      });
+    });
   });
 };
 
@@ -100,6 +108,7 @@ runTests();
 
 module.exports = {
   testUsersInDB: _testUsersInDB,
+  testSPIsInDB: _testSPIsInDB,
   addUserToInDB: (name) => {
     User.findOne({ username: name }).then((userDoc) => {
       _testUsersInDB.push(userDoc);
