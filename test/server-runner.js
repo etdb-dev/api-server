@@ -72,6 +72,15 @@ describe('Database models', () => {
 
     let testSPI = new SPI(spiData);
 
+    const cleanup = (done) => {
+      testSPI.remove().then((doc) => {
+        expect(doc).to.eql(testSPI);
+        done();
+      });
+    };
+
+    after(cleanup);
+
     it('should have a name', () => {
       expect(testSPI).to.have.property('name', 'Gimme-Their-Data Inc.');
     });
