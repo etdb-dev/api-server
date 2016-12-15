@@ -53,11 +53,11 @@ let runTests = () => {
         authTests.run('/auth/:user');
       });
 
-      describe('/v1/apps', () => {
-        appsTests.run('/v1/apps');
+      describe('/v0/apps', () => {
+        appsTests.run('/v0/apps');
       });
-      describe('/v1/apps/:appId', () => {
-        appsTests.run('/v1/apps/:appId');
+      describe('/v0/apps/:appId', () => {
+        appsTests.run('/v0/apps/:appId');
       });
     });
   });

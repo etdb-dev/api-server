@@ -15,7 +15,7 @@ let testMessage = (expectedMessage, resBody) => {
 let run = (route) => {
 
   switch(route) {
-    case '/v1/apps':
+    case '/v0/apps':
       describe('POST', () => {
 
         it('should add a new app', () => {
@@ -76,7 +76,7 @@ let run = (route) => {
 
       });
       break;
-    case '/v1/apps/:appId':
+    case '/v0/apps/:appId':
       describe('GET', () => {
 
         it('should get the data for one app', () => {
@@ -100,7 +100,7 @@ let run = (route) => {
         it('should update the data of one app', () => {
           let updateData = {
             name: 'testAppChanged',
-            publisher: '/v1/app/:appId PUT test',
+            publisher: '/v0/app/:appId PUT test',
             store_url: 'https://play.updated.com'
           };
           return chai.request(cfg.baseUrl)
