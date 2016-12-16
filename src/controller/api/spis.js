@@ -24,9 +24,12 @@ spisController.addSPI = (req, res) => {
 
 spisController.listSPIs = (req, res) => {
   mw.canAccess(req, res, () => {
-    SPI.find().then((docs) => {
+    let spiName = req.params.name;
+    let findFilter = spiName ? { name: spiName } : {};
+    SPI.find(findFilter).then((docs) => {
+      let message = spiName ? 'data for ' + spiName : 'list of all SPIs';
       res.json({
-        message: 'list of all SPIs',
+        message: message,
         spis: docs
       });
     });

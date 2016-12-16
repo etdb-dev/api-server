@@ -65,6 +65,9 @@ let runTests = () => {
       describe('/v0/spis', () => {
         spiTests.run('/v0/spis');
       });
+      describe('/v0/spis/:name', () => {
+        spiTests.run('/v0/spis/:name');
+      });
     });
   });
 
@@ -96,9 +99,10 @@ let cleanup = () => {
       });
     });
     it('Delete all test SPIs', () => {
-      return SPI.remove({ _id: { $in: _testSPIsInDB } }).then((delCmd) => {
+      let testSPI_ids = _.map(_testSPIsInDB, (spi) => spi._id);
+      return SPI.remove({ _id: { $in: testSPI_ids } }).then((delCmd) => {
         expect(delCmd.result.ok).to.equal(1);
-        expect(delCmd.result.n).to.equal(_testSPIsInDB.length);
+        expect(delCmd.result.n).to.equal(testSPI_ids.length);
       });
     });
   });

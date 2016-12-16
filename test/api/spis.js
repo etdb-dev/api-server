@@ -29,7 +29,7 @@ let run = (route) => {
               expect(res).to.have.status(201);
               testMessage('Gimme-Their-Data Inc. has been added', res.body);
               expect(res.body).to.have.property('added');
-              testSPIsInDB.push(res.body.added._id);
+              testSPIsInDB.push(res.body.added);
             });
         });
         it('should respond with 400 when error occurs', () => {
@@ -58,7 +58,23 @@ let run = (route) => {
               expect(res).to.have.status(200);
               testMessage('list of all SPIs', res.body);
               expect(res.body).to.have.property('spis');
-              expect(_.findIndex(res.body.spis, [ '_id', testSPIsInDB[0] ])).to.be.above(-1);
+              expect(_.findIndex(res.body.spis, [ '_id', testSPIsInDB[0]._id ])).to.be.above(-1);
+            });
+        });
+      });
+      break;
+
+    case '/v0/spis/:name':
+      describe('GET', () => {
+        it('should return data for SPI with :name', () => {
+          let testSPIsInDB = module.parent.exports.testSPIsInDB;
+          return chai.request(cfg.baseUrl)
+            .get(route.replace(':name', testSPIsInDB[0].name))
+            .set('x-access-token', testUsers.readAPI.token)
+            .then((res) => {
+              expect(res).to.have.status(200);
+              testMessage('data for ' + testSPIsInDB[0].name, res.body);
+              expect(res.body.spis[0]._id).to.eql(testSPIsInDB[0]._id);
             });
         });
       });
