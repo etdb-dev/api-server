@@ -8,14 +8,17 @@ const expect = chai.expect;
 const db = require('../src/db');
 const User = db.user;
 const App = db.app;
+const SPI = db.spi;
 const authController = require('../src/controller/auth');
 require('../src/log')();
 
-const testUsers = require('./testusers');
+const testUsers = require('./bench/users');
 const authTests = require('./auth');
-const appsTests = require('./apps');
+const appsTests = require('./api/apps');
+const spiTests = require('./api/spis');
 
 let _testUsersInDB = [];
+let _testSPIsInDB = [];
 
 let setTokenFor = (accessType) => {
   let targetUser = testUsers[accessType];
@@ -42,7 +45,6 @@ let runTests = () => {
             done();
           });
         });
-
       });
 
       describe('/auth', () => {
@@ -59,6 +61,13 @@ let runTests = () => {
       describe('/v0/apps/:appId', () => {
         appsTests.run('/v0/apps/:appId');
       });
+
+      describe('/v0/spis', () => {
+        spiTests.run('/v0/spis');
+      });
+      describe('/v0/spis/:name', () => {
+        spiTests.run('/v0/spis/:name');
+      });
     });
   });
 
@@ -67,8 +76,9 @@ let runTests = () => {
 let setup = () => {
   return db.connect().then(() => {
     _.forOwn(testUsers, (userData) => !userData.noauto ? _testUsersInDB.push(new User(userData)) : void 0);
-    User.create(_testUsersInDB).then((docs) => {
+    return User.create(_testUsersInDB).then((docs) => {
       expect(docs.length).to.equal(_testUsersInDB.length);
+      console.log('getting tokens');
       _.each(testUsers, (user, key) => setTokenFor(key));
     });
   });
@@ -88,6 +98,14 @@ let cleanup = () => {
         expect(delCmd.result.ok).to.equal(1);
       });
     });
+    it('Delete all test SPIs', () => {
+      if (_testSPIsInDB.length === 0) return new Promise((resolve) => resolve());
+      let testSPI_ids = _.map(_testSPIsInDB, (spi) => spi._id);
+      return SPI.remove({ _id: { $in: testSPI_ids } }).then((delCmd) => {
+        expect(delCmd.result.ok).to.equal(1);
+        expect(delCmd.result.n).to.equal(testSPI_ids.length);
+      });
+    });
   });
 };
 
@@ -95,6 +113,7 @@ runTests();
 
 module.exports = {
   testUsersInDB: _testUsersInDB,
+  testSPIsInDB: _testSPIsInDB,
   addUserToInDB: (name) => {
     User.findOne({ username: name }).then((userDoc) => {
       _testUsersInDB.push(userDoc);

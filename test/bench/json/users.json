@@ -1,0 +1,23 @@
+{
+  "addTestUser": {
+    "username": "addTestUser",
+    "password": "addTestUser",
+    "access": {
+      "readAPI": false,
+      "writeAPI": false,
+      "isAdmin": false,
+      "manageUsers": false
+    },
+    "noauto": true
+  },
+  "deleteTestUser": {
+    "username": "deleteTestUser",
+    "password": "deleteTestUser",
+    "access": {
+      "readAPI": false,
+      "writeAPI": false,
+      "isAdmin": false,
+      "manageUsers": false
+    }
+  }
+}
