@@ -78,6 +78,29 @@ let run = (route) => {
             });
         });
       });
+
+      describe('PUT', () => {
+        it('should update an SPI', () => {
+          let testSPIsInDB = module.parent.exports.testSPIsInDB;
+          return chai.request(cfg.baseUrl)
+            .put(route.replace(':name', testSPIsInDB[0].name))
+            .set('x-access-token', testUsers.writeAPI.token)
+            .send({
+              protocol: 'HTTP',
+              encrypted: false,
+              endpoint_url: 'http://data.blackhole.com'
+            })
+            .then((res) => {
+              let updatedSPI = res.body.updated;
+              expect(res).to.have.status(200);
+              testMessage(testSPIsInDB[0].name + ' has been updated', res.body);
+              expect(updatedSPI._id).to.equal(testSPIsInDB[0]._id);
+              expect(updatedSPI.protocol).to.equal('HTTP');
+              expect(updatedSPI.encrypted).to.be.false;
+              expect(updatedSPI.endpoint_url).to.equal('http://data.blackhole.com');
+            });
+        });
+      });
       break;
   }
 
