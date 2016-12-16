@@ -99,6 +99,7 @@ let cleanup = () => {
       });
     });
     it('Delete all test SPIs', () => {
+      if (_testSPIsInDB.length === 0) return new Promise((resolve) => resolve());
       let testSPI_ids = _.map(_testSPIsInDB, (spi) => spi._id);
       return SPI.remove({ _id: { $in: testSPI_ids } }).then((delCmd) => {
         expect(delCmd.result.ok).to.equal(1);

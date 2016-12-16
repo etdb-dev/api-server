@@ -65,6 +65,7 @@ let run = (route) => {
       break;
 
     case '/v0/spis/:name':
+
       describe('GET', () => {
         it('should return data for SPI with :name', () => {
           let testSPIsInDB = module.parent.exports.testSPIsInDB;
@@ -77,10 +78,18 @@ let run = (route) => {
               expect(res.body.spis[0]._id).to.eql(testSPIsInDB[0]._id);
             });
         });
+        it('should return 404 when no SPI with :name is found', () => {
+          return chai.request(cfg.baseUrl)
+            .get(route.replace(':name', 'not in DB'))
+            .set('x-access-token', testUsers.readAPI.token)
+            .catch((err) => {
+              expect(err).to.have.status(404);
+            });
+        });
       });
 
       describe('PUT', () => {
-        it('should update an SPI', () => {
+        it('should update SPI with :name', () => {
           let testSPIsInDB = module.parent.exports.testSPIsInDB;
           return chai.request(cfg.baseUrl)
             .put(route.replace(':name', testSPIsInDB[0].name))
@@ -88,7 +97,8 @@ let run = (route) => {
             .send({
               protocol: 'HTTP',
               encrypted: false,
-              endpoint_url: 'http://data.blackhole.com'
+              endpoint_url: 'http://data.blackhole.com',
+              blah: 'test'
             })
             .then((res) => {
               let updatedSPI = res.body.updated;
@@ -98,6 +108,37 @@ let run = (route) => {
               expect(updatedSPI.protocol).to.equal('HTTP');
               expect(updatedSPI.encrypted).to.be.false;
               expect(updatedSPI.endpoint_url).to.equal('http://data.blackhole.com');
+            });
+        });
+        it('should return 404 when no SPI with :name is found', () => {
+          return chai.request(cfg.baseUrl)
+            .put(route.replace(':name', 'not in DB'))
+            .set('x-access-token', testUsers.writeAPI.token)
+            .send({ shouldnt: 'matter' })
+            .catch((err) => {
+              expect(err).to.have.status(404);
+            });
+        });
+      });
+
+      describe('DELETE', () => {
+        it('should delete SPI with :name', () => {
+          let testSPIsInDB = module.parent.exports.testSPIsInDB;
+          return chai.request(cfg.baseUrl)
+            .delete(route.replace(':name', testSPIsInDB[0].name))
+            .set('x-access-token', testUsers.writeAPI.token)
+            .then((res) => {
+              expect(res).to.have.status(200);
+              testMessage(testSPIsInDB[0].name + ' has been deleted', res.body);
+              testSPIsInDB.shift();
+            });
+        });
+        it('should return 404 when no SPI with :name is found', () => {
+          return chai.request(cfg.baseUrl)
+            .delete(route.replace(':name', 'not in DB'))
+            .set('x-access-token', testUsers.writeAPI.token)
+            .catch((err) => {
+              expect(err).to.have.status(404);
             });
         });
       });

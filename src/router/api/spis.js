@@ -6,4 +6,5 @@ module.exports = (apiRouter, apiController) => {
 
   apiRouter.put('/v0/spis/:name', apiController.spis.updateSPI);
   apiRouter.get('/v0/spis/:name', apiController.spis.listSPIs);
+  apiRouter.delete('/v0/spis/:name', apiController.spis.deleteSPI);
 };
