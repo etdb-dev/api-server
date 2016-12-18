@@ -8,17 +8,10 @@ const expect = chai.expect;
 const cfg = require('./config.json');
 
 const testUsers = require('./bench/users');
+const helper = require('./helper');
 
-let test401 = () => {
-  chai.request(cfg.baseUrl).get('/auth').end((err) => {
-    expect(err).to.have.status(401);
-  });
-};
-
-let testMessage = (expectedMessage, resBody) => {
-  expect(resBody).to.have.property('message');
-  expect(expectedMessage).to.equal(resBody.message);
-};
+let testMessage = helper.testMessage;
+let test401 = helper.test401;
 
 let getCredentialsFor = (accessType) => {
   let userObj = testUsers[accessType];
