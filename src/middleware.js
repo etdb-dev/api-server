@@ -83,10 +83,10 @@ middleware.canAccess = (req, res, next, data) => {
   let isAdmin = access['isAdmin'];
   let accessTest = access[data.accessType];
   let selfTest = data.allowSelf === req.tokenPayload.username;
-  let grantedBy = isAdmin ? 'isAdmin' : accessTest ? 'access' : selfTest ? 'self' : '';
+  let grantedBy = isAdmin ? 'isAdmin' : accessTest ? data.accessType : selfTest ? 'self' : '';
 
   if (isAdmin || accessTest || selfTest) {
-    logSuccess(`Requested access level (${data.accessType}) was satisfied by: ${grantedBy}`);
+    logSuccess(`Requested access level (${data.accessType}) satisfied by: ${grantedBy}`);
     return next(grantedBy);
   }
   return fail();
