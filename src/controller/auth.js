@@ -20,7 +20,8 @@ authController.signToken = (tokenData) => {
 };
 
 authController.getToken = (req, res, next) => {
-  mw.canAccess(req, res, () => {
+  mw.canAccess(req, res, { accessType: 'readAPI' })
+  .then(() => {
     logDebug('Creating token');
     let tokenData = req.tokenPayload;
     let token = authController.signToken(tokenData);
@@ -28,11 +29,12 @@ authController.getToken = (req, res, next) => {
       message: 'Token for evr\'body!',
       token: token
     });
-  }, { accessType: 'readAPI' });
+  });
 };
 
 authController.addUser = (req, res) => {
-  mw.canAccess(req, res, () => {
+  mw.canAccess(req, res, { accessType: 'manageUsers' })
+  .then(() => {
     let data = req.body;
     let tokenData = req.tokenPayload;
     if (tokenData.username === data.username) {
@@ -59,11 +61,12 @@ authController.addUser = (req, res) => {
       message: `user (${data.username}) already exists`,
       userId: err.getOperation()._id
     }));
-  }, { accessType: 'manageUsers' });
+  });
 };
 
 authController.deleteUser = (req, res) => {
-  mw.canAccess(req, res, () => {
+  mw.canAccess(req, res, { accessType: 'manageUsers', allowSelf: req.params.userId })
+  .then(() => {
     User.findOneAndRemove({ _id: req.params.userId }).then((deletedDoc) => {
       if (!deletedDoc) {
         logWarn(`User (uid=${req.params.userId}) not found`);
@@ -74,11 +77,12 @@ authController.deleteUser = (req, res) => {
         res.json({ message: msg });
       }
     });
-  }, { accessType: 'manageUsers', allowSelf: req.params.userId });
+  });
 };
 
 authController.updateUser = (req, res) => {
-  mw.canAccess(req, res, (grantedBy) => {
+  mw.canAccess(req, res, { accessType: 'manageUsers', allowSelf: req.params.userId })
+  .then((grantedBy) => {
     let updates = req.body;
 
     if (updates.access) {
@@ -93,12 +97,13 @@ authController.updateUser = (req, res) => {
       logSuccess(msg);
       res.json({ message: msg });
     });
-  }, { accessType: 'manageUsers', allowSelf: req.params.userId });
+  });
 };
 
 authController.listUsers = (req, res) => {
   let username = req.tokenPayload.username;
-  mw.canAccess(req, res, (grantedBy) => {
+  mw.canAccess(req, res, { accessType: 'manageUsers', allowSelf: req.tokenPayload.userId })
+  .then((grantedBy) => {
     let findFilter = grantedBy === 'self' ? { username: username } : {};
     User.find(findFilter, {_id: 0, username: 1, access: 1 }).then((docs) => {
       res.json({
@@ -106,7 +111,7 @@ authController.listUsers = (req, res) => {
         users: docs
       });
     });
-  }, { accessType: 'manageUsers', allowSelf: req.tokenPayload.userId });
+  });
 };
 
 module.exports = authController;

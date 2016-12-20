@@ -8,7 +8,8 @@ const utils = require('../../utils');
 let spisController = {};
 
 spisController.addSPI = (req, res) => {
-  mw.canAccess(req, res, () => {
+  mw.canAccess(req, res, { accessType: 'writeAPI' })
+  .then(() => {
     let newSPI = new SPI(req.body);
     newSPI.save().then((spiDoc) => {
       let clientSpiDoc = _.omit(spiDoc, '__v');
@@ -22,11 +23,12 @@ spisController.addSPI = (req, res) => {
         err: err
       });
     });
-  }, { accessType: 'writeAPI' });
+  });
 };
 
 spisController.listSPIs = (req, res) => {
-  mw.canAccess(req, res, () => {
+  mw.canAccess(req, res, { accessType: 'readAPI' })
+  .then(() => {
     let spiId = req.params.spiId;
 
     if (spiId !== void 0 && !utils.isObjectId(spiId)) {
@@ -46,11 +48,12 @@ spisController.listSPIs = (req, res) => {
         spis: spiDocs
       });
     });
-  }, { accessType: 'readAPI' });
+  });
 };
 
 spisController.updateSPI = (req, res) => {
-  mw.canAccess(req, res, () => {
+  mw.canAccess(req, res, { accessType: 'writeAPI' })
+  .then(() => {
 
     if (!utils.isObjectId(req.params.spiId)) {
       return res.status(400).json({
@@ -70,11 +73,12 @@ spisController.updateSPI = (req, res) => {
         });
       });
     });
-  }, { accessType: 'writeAPI' });
+  });
 };
 
 spisController.deleteSPI = (req, res) => {
-  mw.canAccess(req, res, () => {
+  mw.canAccess(req, res, { accessType: 'writeAPI' })
+  .then(() => {
 
     if (!utils.isObjectId(req.params.spiId)) {
       return res.status(400).json({
@@ -90,7 +94,7 @@ spisController.deleteSPI = (req, res) => {
         message: spiDoc.name + ' has been deleted'
       });
     });
-  }, { accessType: 'writeAPI' });
+  });
 };
 
 module.exports = spisController;

@@ -9,7 +9,8 @@ const App = require('../../db/app');
 const appsController = {};
 
 appsController.addApp = (req, res, next) => {
-  mw.canAccess(req, res, () => {
+  mw.canAccess(req, res, { accessType: 'writeAPI' })
+  .then(() => {
     let data = req.body;
     let tokenData = req.tokenPayload;
 
@@ -38,21 +39,23 @@ appsController.addApp = (req, res, next) => {
         missing: missing
       });
     });
-  }, { accessType: 'writeAPI' });
+  });
 };
 
 appsController.listApps = (req, res, next) => {
-  mw.canAccess(req, res, () => {
+  mw.canAccess(req, res, { accessType: 'readAPI' })
+  .then(() => {
     let findFilter = req.params.appId ? { _id: req.params.appId } : {};
     App.find(findFilter, '-__v').then((appDocs) => res.json({
       message: 'applist',
       apps: appDocs
     }));
-  }, { accessType: 'readAPI' });
+  });
 };
 
 appsController.updateApp = (req, res, next) => {
-  mw.canAccess(req, res, () => {
+  mw.canAccess(req, res, { accessType: 'writeAPI' })
+  .then(() => {
     let appId = req.params.appId;
     let clientDoc;
     let nameBeforeUpdate;
@@ -68,18 +71,19 @@ appsController.updateApp = (req, res, next) => {
         updated: clientDoc
       });
     });
-  }, { accessType: 'writeAPI' });
+  });
 };
 
 appsController.deleteApp = (req, res) => {
-  mw.canAccess(req, res, () => {
+  mw.canAccess(req, res, { accessType: 'writeAPI' })
+  .then(() => {
     return App.findOneAndRemove({ _id: req.params.appId })
       .then((removedDoc) => {
         res.json({
           message: removedDoc.name + ' has been deleted'
         });
       });
-  }, { accessType: 'writeAPI' });
+  });
 };
 
 let validateInput = (expected, input) => {
