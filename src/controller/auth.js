@@ -1,11 +1,12 @@
 'use strict';
 
+const Promise = require('bluebird');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
 
 const config = require('../config');
-const mw = require('../middleware');
-const User = require('../db/user');
+const db = require('../db');
+const User = db.user;
 const accessDefaults = require('../const').accessDefaults;
 
 let authController = {};
@@ -21,7 +22,7 @@ authController.signToken = (tokenData) => {
 };
 
 authController.getToken = (req, res, next) => {
-  mw.canAccess(req, res, { accessType: 'readAPI' })
+  authController.canAccess(req, res, 'readAPI')
   .then(() => {
     logDebug('Creating token');
     let tokenData = req.tokenPayload;
@@ -33,8 +34,50 @@ authController.getToken = (req, res, next) => {
   });
 };
 
+authController.canAccess = (req, res, accessType, allowSelf) => {
+
+  return new Promise((resolve, reject) => {
+
+    if (!accessType) {
+      return reject(res, req.tokenPayload.username, accessType);
+    }
+
+    let selfTest;
+
+    User.findOne({ _id: allowSelf }).then(() => {
+      selfTest = true;
+    }).catch(() => {
+      selfTest = false;
+    }).finally(() => {
+      let access = req.tokenPayload.access;
+      let isAdmin = access['isAdmin'];
+      let accessTest = access[accessType];
+      let grantedBy = isAdmin ? 'isAdmin' : accessTest ? accessType : selfTest ? 'self' : '';
+
+      if (isAdmin || accessTest || selfTest) {
+        logSuccess(`Requested access level (${accessType}) satisfied by: ${grantedBy}`);
+        return resolve(grantedBy);
+      }
+      return reject(req, res, accessType, req.tokenPayload.username);
+    });
+
+  });
+};
+
+authController.denyAccess = (res, username, accessType) => {
+  
+  return new Promise((resolve, reject) => {
+    
+    logWarn(`Access denied to ${username} on ${accessType}`);
+    res.status(401).json({
+      message: `You don't have the permission to ${accessType}.`
+    });
+  });
+
+};
+
 authController.addUser = (req, res) => {
-  mw.canAccess(req, res, { accessType: 'manageUsers' })
+  authController.canAccess(req, res, 'manageUsers')
   .then(() => {
     let data = req.body;
     let tokenData = req.tokenPayload;
@@ -66,7 +109,7 @@ authController.addUser = (req, res) => {
 };
 
 authController.deleteUser = (req, res) => {
-  mw.canAccess(req, res, { accessType: 'manageUsers', allowSelf: req.params.userId })
+  authController.canAccess(req, res, 'manageUsers', req.params.userId)
   .then(() => {
     User.findOneAndRemove({ _id: req.params.userId }).then((deletedDoc) => {
       if (!deletedDoc) {
@@ -82,7 +125,7 @@ authController.deleteUser = (req, res) => {
 };
 
 authController.updateUser = (req, res) => {
-  mw.canAccess(req, res, { accessType: 'manageUsers', allowSelf: req.params.userId })
+  authController.canAccess(req, res, 'manageUsers', req.params.userId)
   .then((grantedBy) => {
     let updates = req.body;
 
@@ -103,7 +146,7 @@ authController.updateUser = (req, res) => {
 
 authController.listUsers = (req, res) => {
   let username = req.tokenPayload.username;
-  mw.canAccess(req, res, { accessType: 'manageUsers', allowSelf: req.tokenPayload.userId })
+  authController.canAccess(req, res, 'manageUsers', req.tokenPayload.userId)
   .then((grantedBy) => {
     let findFilter = grantedBy === 'self' ? { username: username } : {};
     User.find(findFilter, {_id: 0, username: 1, access: 1 }).then((docs) => {

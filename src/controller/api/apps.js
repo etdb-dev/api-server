@@ -3,13 +3,13 @@
 const Promise = require('bluebird');
 const _ = require('lodash');
 
-const mw = require('../../middleware');
+const authController = require('../auth');
 const App = require('../../db/app');
 
 const appsController = {};
 
 appsController.addApp = (req, res, next) => {
-  mw.canAccess(req, res, { accessType: 'writeAPI' })
+  authController.canAccess(req, res, 'writeAPI')
   .then(() => {
     let data = req.body;
     let tokenData = req.tokenPayload;
@@ -43,7 +43,7 @@ appsController.addApp = (req, res, next) => {
 };
 
 appsController.listApps = (req, res, next) => {
-  mw.canAccess(req, res, { accessType: 'readAPI' })
+  authController.canAccess(req, res, 'readAPI')
   .then(() => {
     let findFilter = req.params.appId ? { _id: req.params.appId } : {};
     App.find(findFilter, '-__v').then((appDocs) => res.json({
@@ -54,7 +54,7 @@ appsController.listApps = (req, res, next) => {
 };
 
 appsController.updateApp = (req, res, next) => {
-  mw.canAccess(req, res, { accessType: 'writeAPI' })
+  authController.canAccess(req, res, 'writeAPI')
   .then(() => {
     let appId = req.params.appId;
     let clientDoc;
@@ -75,7 +75,7 @@ appsController.updateApp = (req, res, next) => {
 };
 
 appsController.deleteApp = (req, res) => {
-  mw.canAccess(req, res, { accessType: 'writeAPI' })
+  authController.canAccess(req, res, 'writeAPI')
   .then(() => {
     return App.findOneAndRemove({ _id: req.params.appId })
       .then((removedDoc) => {
