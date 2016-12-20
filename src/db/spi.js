@@ -3,10 +3,10 @@
 const mongoose = require('mongoose');
 
 const spiSchema = mongoose.Schema({
+  name: { type: String },
   last_modified: { type: Date },
   endpoint_url: { type: String, required: true },
   encrypted: { type: Boolean, default: false },
-  name: { type: String },
   protocol: { type: String },
   content_type: { type: String },
   cert: {

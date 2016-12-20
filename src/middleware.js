@@ -75,21 +75,28 @@ middleware.canAccess = (req, res, next, data) => {
   if (!data.accessType) {
     return fail();
   }
+  
+  let selfTest;
 
-  // Even though all /auth routes rely on Basic Auth,
-  // req.tokenPayload is populated!
-  // see: module:middleware.doBasicAuth
-  let access = req.tokenPayload.access;
-  let isAdmin = access['isAdmin'];
-  let accessTest = access[data.accessType];
-  let selfTest = data.allowSelf === req.tokenPayload.username;
-  let grantedBy = isAdmin ? 'isAdmin' : accessTest ? data.accessType : selfTest ? 'self' : '';
+  db.user.findOne({ _id: data.allowSelf }).then((userDoc) => {
+    selfTest = true;
+  }).catch(() => {
+    selfTest = false;
+  }).finally(() => {
+    // Even though all /auth routes rely on Basic Auth,
+    // req.tokenPayload is populated!
+    // see: module:middleware.doBasicAuth
+    let access = req.tokenPayload.access;
+    let isAdmin = access['isAdmin'];
+    let accessTest = access[data.accessType];
+    let grantedBy = isAdmin ? 'isAdmin' : accessTest ? data.accessType : selfTest ? 'self' : '';
 
-  if (isAdmin || accessTest || selfTest) {
-    logSuccess(`Requested access level (${data.accessType}) satisfied by: ${grantedBy}`);
-    return next(grantedBy);
-  }
-  return fail();
+    if (isAdmin || accessTest || selfTest) {
+      logSuccess(`Requested access level (${data.accessType}) satisfied by: ${grantedBy}`);
+      return next(grantedBy);
+    }
+    return fail();
+  });
 };
 
 let failAuthRequest = (res) => {

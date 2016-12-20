@@ -1,5 +1,6 @@
 'use strict';
 
+const _ = require('lodash');
 const chai = require('chai');
 chai.use(require('chai-http'));
 const expect = chai.expect;
@@ -9,6 +10,9 @@ const cfg = require('../config.json');
 const helper = require('../helper');
 
 let testMessage = helper.testMessage;
+let testId = helper.testId;
+
+let _appsInDB = [];
 
 let run = (route) => {
 
@@ -27,6 +31,7 @@ let run = (route) => {
             }).then((res) => {
               expect(res).to.have.status(201);
               testMessage('testApp has been createad', res.body);
+              testId('appId', res.body);
             });
         });
 
@@ -41,6 +46,7 @@ let run = (route) => {
             }).catch((err) => {
               expect(err).to.have.status(409);
               testMessage('testApp already exists', err.response.res.body);
+              testId('appId', err.response.res.body);
             });
         });
 
@@ -69,6 +75,7 @@ let run = (route) => {
               expect(res.body.apps[0]).to.have.property('name');
               expect(res.body.apps[0]).to.have.property('publisher');
               expect(res.body.apps[0]).to.have.property('store_url');
+              _appsInDB.push(_.find(res.body.apps, [ 'name', 'testApp' ]));
             });
         });
 
@@ -79,7 +86,7 @@ let run = (route) => {
 
         it('should get the data for one app', () => {
           return chai.request(cfg.baseUrl)
-            .get(route.replace(':appId', 'testApp'))
+            .get(route.replace(':appId', _appsInDB[0]._id))
             .set('x-access-token', testUsers.readAPI.token)
             .then((res) => {
               testMessage('applist', res.body);
@@ -102,12 +109,15 @@ let run = (route) => {
             store_url: 'https://play.updated.com'
           };
           return chai.request(cfg.baseUrl)
-            .put(route.replace(':appId', 'testApp'))
+            .put(route.replace(':appId', _appsInDB[0]._id))
             .set('x-access-token', testUsers.writeAPI.token)
             .send(updateData)
             .then((res) => {
               testMessage('testApp has been updated', res.body);
-              expect(res.body.updated).to.eql(updateData);
+              testId('appId', res.body);
+              let received = res.body.updated;
+              delete received._id;
+              expect(received).to.eql(updateData);
             });
         });
 
@@ -117,7 +127,7 @@ let run = (route) => {
 
         it('should delete an app', () => {
           return chai.request(cfg.baseUrl)
-            .delete(route.replace(':appId', 'testAppChanged'))
+            .delete(route.replace(':appId', _appsInDB[0]._id))
             .set('x-access-token', testUsers.writeAPI.token)
             .then((res) => {
               testMessage('testAppChanged has been deleted', res.body);

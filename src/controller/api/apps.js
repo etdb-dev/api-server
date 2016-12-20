@@ -20,12 +20,16 @@ appsController.addApp = (req, res, next) => {
         publisher: data.publisher,
         store_url: data.store_url
       });
-      app.save().then(() => {
-        let msg = `${data.name} has been createad`;
+      app.save().then((appDoc) => {
+        let msg = `${appDoc.name} has been createad`;
         logSuccess(msg + ' by ' + tokenData.username);
-        res.status(201).json({ message: msg });
-      }).catch(() => res.status(409).json({
-        message: `${data.name} already exists`
+        res.status(201).json({
+          message: msg,
+          appId: appDoc._id
+        });
+      }).catch((err) => res.status(409).json({
+        message: `${data.name} already exists`,
+        appId: err.getOperation()._id
       }));
     })
     .catch((missing) => {
@@ -39,8 +43,8 @@ appsController.addApp = (req, res, next) => {
 
 appsController.listApps = (req, res, next) => {
   mw.canAccess(req, res, () => {
-    let findFilter = req.params.appId ? { name: req.params.appId } : {};
-    App.find(findFilter, '-_id -__v').then((appDocs) => res.json({
+    let findFilter = req.params.appId ? { _id: req.params.appId } : {};
+    App.find(findFilter, '-__v').then((appDocs) => res.json({
       message: 'applist',
       apps: appDocs
     }));
@@ -51,13 +55,16 @@ appsController.updateApp = (req, res, next) => {
   mw.canAccess(req, res, () => {
     let appId = req.params.appId;
     let clientDoc;
-    return App.findOne({ name: appId }).then((appDoc) => {
+    let nameBeforeUpdate;
+    return App.findOne({ _id: appId }).then((appDoc) => {
+      nameBeforeUpdate = appDoc.name;
       _.assign(appDoc, req.body);
-      clientDoc = _.omit(appDoc._doc, '_id', '__v');
+      clientDoc = _.omit(appDoc._doc, '__v');
       return appDoc.save();
-    }).then(() => {
+    }).then((appDoc) => {
       res.json({
-        message: req.params.appId + ' has been updated',
+        message: nameBeforeUpdate + ' has been updated',
+        appId: appDoc._id,
         updated: clientDoc
       });
     });
@@ -66,7 +73,7 @@ appsController.updateApp = (req, res, next) => {
 
 appsController.deleteApp = (req, res) => {
   mw.canAccess(req, res, () => {
-    return App.findOneAndRemove({ name: req.params.appId }, '-_id -__v')
+    return App.findOneAndRemove({ _id: req.params.appId })
       .then((removedDoc) => {
         res.json({
           message: removedDoc.name + ' has been deleted'

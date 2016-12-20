@@ -9,7 +9,7 @@ authRouter.use('/auth', middleware.doBasicAuth);
 authRouter.get('/auth', authController.getToken);
 authRouter.get('/auth/users', authController.listUsers);
 authRouter.post('/auth', authController.addUser);
-authRouter.put('/auth/:uname', authController.updateUser);
-authRouter.delete('/auth/:uname', authController.deleteUser);
+authRouter.put('/auth/:userId', authController.updateUser);
+authRouter.delete('/auth/:userId', authController.deleteUser);
 
 module.exports = authRouter;

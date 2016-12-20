@@ -11,6 +11,7 @@ let authController = {};
 
 authController.signToken = (tokenData) => {
   return jwt.sign({
+    userId: tokenData.userId,
     username: tokenData.username,
     access: tokenData.access
   }, config.get('secret'), {
@@ -47,21 +48,25 @@ authController.addUser = (req, res) => {
       'access': _.assign(authController.accessDefaults, data.access || {})
     });
 
-    user.save().then(() => {
+    user.save().then((userDoc) => {
       let msg = `${data.username} has been createad`;
       logSuccess(msg + ' by ' + tokenData.username);
-      res.status(201).json({ message: msg });
-    }).catch(() => res.status(409).json({
-      message: `user (${data.username}) already exists`
+      res.status(201).json({
+        message: msg,
+        userId: userDoc._id
+      });
+    }).catch((err) => res.status(409).json({
+      message: `user (${data.username}) already exists`,
+      userId: err.getOperation()._id
     }));
   }, { accessType: 'manageUsers' });
 };
 
 authController.deleteUser = (req, res) => {
   mw.canAccess(req, res, () => {
-    User.findOneAndRemove({ username: req.params.uname }).then((deletedDoc) => {
+    User.findOneAndRemove({ _id: req.params.userId }).then((deletedDoc) => {
       if (!deletedDoc) {
-        logWarn(`User (uid=${req.params.uname}) not found`);
+        logWarn(`User (uid=${req.params.userId}) not found`);
         res.sendStatus(404);
       } else {
         let msg = `${deletedDoc.username} has been deleted`;
@@ -69,7 +74,7 @@ authController.deleteUser = (req, res) => {
         res.json({ message: msg });
       }
     });
-  }, { accessType: 'manageUsers', allowSelf: req.params.uname });
+  }, { accessType: 'manageUsers', allowSelf: req.params.userId });
 };
 
 authController.updateUser = (req, res) => {
@@ -80,7 +85,7 @@ authController.updateUser = (req, res) => {
       updates.access = grantedBy === 'self' ? req.tokenPayload.access : _.assign(authController.accessDefaults, req.body.access || {});;
     }
 
-    User.findOne({ username: req.params.uname }).then((userDoc) => {
+    User.findOne({ _id: req.params.userId }).then((userDoc) => {
       userDoc = _.assign(userDoc, updates);
       return userDoc.save();
     }).then((updatedDoc) => {
@@ -88,7 +93,7 @@ authController.updateUser = (req, res) => {
       logSuccess(msg);
       res.json({ message: msg });
     });
-  }, { accessType: 'manageUsers', allowSelf: req.params.uname });
+  }, { accessType: 'manageUsers', allowSelf: req.params.userId });
 };
 
 authController.listUsers = (req, res) => {
@@ -101,7 +106,7 @@ authController.listUsers = (req, res) => {
         users: docs
       });
     });
-  }, { accessType: 'manageUsers', allowSelf: req.tokenPayload.username });
+  }, { accessType: 'manageUsers', allowSelf: req.tokenPayload.userId });
 };
 
 module.exports = authController;

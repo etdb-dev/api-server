@@ -62,4 +62,6 @@ utils.generateUUID = () => {
   });
 };
 
+utils.isObjectId = (id) => /^[\da-f]{24}$/.test(id);
+
 module.exports = utils;

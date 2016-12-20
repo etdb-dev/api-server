@@ -3,16 +3,18 @@
 const _ = require('lodash');
 const mw = require('../../middleware');
 const SPI = require('../../db/spi');
+const utils = require('../../utils');
 
 let spisController = {};
 
 spisController.addSPI = (req, res) => {
   mw.canAccess(req, res, () => {
     let newSPI = new SPI(req.body);
-    newSPI.save().then((doc) => {
+    newSPI.save().then((spiDoc) => {
+      let clientSpiDoc = _.omit(spiDoc, '__v');
       res.status(201).json({
         message: req.body.name + ' has been added',
-        added: doc
+        added: clientSpiDoc
       });
     }).catch((err) => {
       res.status(400).json({
@@ -25,13 +27,20 @@ spisController.addSPI = (req, res) => {
 
 spisController.listSPIs = (req, res) => {
   mw.canAccess(req, res, () => {
-    let spiName = req.params.name;
-    let findFilter = spiName ? { name: spiName } : {};
+    let spiId = req.params.spiId;
+
+    if (spiId !== void 0 && !utils.isObjectId(spiId)) {
+      return res.status(400).json({
+        message: 'Invalid spiId'
+      });
+    }
+
+    let findFilter = spiId ? { _id: spiId } : {};
     SPI.find(findFilter).then((spiDocs) => {
       if (spiDocs.length === 0) {
         return res.sendStatus(404);
       }
-      let message = spiName ? 'data for ' + spiName : 'list of all SPIs';
+      let message = spiId ? 'data for ' + spiDocs[0].name : 'list of all SPIs';
       res.json({
         message: message,
         spis: spiDocs
@@ -42,14 +51,21 @@ spisController.listSPIs = (req, res) => {
 
 spisController.updateSPI = (req, res) => {
   mw.canAccess(req, res, () => {
-    SPI.findOne({ name: req.params.name }).then((spiDoc) => {
+
+    if (!utils.isObjectId(req.params.spiId)) {
+      return res.status(400).json({
+        message: 'Invalid spiId'
+      });
+    }
+
+    SPI.findOne({ _id: req.params.spiId }).then((spiDoc) => {
       if (!spiDoc) {
         return res.sendStatus(404);
       }
       _.assign(spiDoc, req.body);
       spiDoc.save().then(() => {
         res.json({
-          message: req.params.name + ' has been updated',
+          message: spiDoc.name + ' has been updated',
           updated: spiDoc
         });
       });
@@ -59,12 +75,19 @@ spisController.updateSPI = (req, res) => {
 
 spisController.deleteSPI = (req, res) => {
   mw.canAccess(req, res, () => {
-    SPI.remove({ name: req.params.name }).then((cmdRes) => {
-      if (cmdRes.result.n === 0) {
+
+    if (!utils.isObjectId(req.params.spiId)) {
+      return res.status(400).json({
+        message: 'Invalid spiId'
+      });
+    }
+
+    SPI.findOneAndRemove({ _id: req.params.spiId }, { select: 'name' }).then((spiDoc) => {
+      if (!spiDoc) {
         return res.sendStatus(404);
       }
       res.json({
-        message: req.params.name + ' has been deleted'
+        message: spiDoc.name + ' has been deleted'
       });
     });
   }, { accessType: 'writeAPI' });

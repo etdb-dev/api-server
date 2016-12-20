@@ -18,4 +18,9 @@ helper.test401 = () => {
   });
 };
 
+helper.testId = (fieldName, resBody) => {
+  expect(resBody).to.have.property(fieldName);
+  expect(resBody[fieldName]).to.match(/^[\da-f]{24}$/);
+};
+
 module.exports = helper;

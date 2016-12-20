@@ -64,13 +64,13 @@ let run = (route) => {
       });
       break;
 
-    case '/v0/spis/:name':
+    case '/v0/spis/:spiId':
 
       describe('GET', () => {
-        it('should return data for SPI with :name', () => {
+        it('should return data for SPI with :spiId', () => {
           let testSPIsInDB = module.parent.exports.testSPIsInDB;
           return chai.request(cfg.baseUrl)
-            .get(route.replace(':name', testSPIsInDB[0].name))
+            .get(route.replace(':spiId', testSPIsInDB[0]._id))
             .set('x-access-token', testUsers.readAPI.token)
             .then((res) => {
               expect(res).to.have.status(200);
@@ -78,23 +78,32 @@ let run = (route) => {
               expect(res.body.spis[0]._id).to.eql(testSPIsInDB[0]._id);
             });
         });
-        it('should return 404 when no SPI with :name is found', () => {
+        it('should return 404 when no SPI with :spiId is found', () => {
           return chai.request(cfg.baseUrl)
-            .get(route.replace(':name', 'not in DB'))
+            .get(route.replace(':spiId', 'aaaaaaaaaaaaaaaaaaaaaaaa'))
             .set('x-access-token', testUsers.readAPI.token)
             .catch((err) => {
               expect(err).to.have.status(404);
             });
         });
+        it('should return 400 when :spiId is not an ObjectId (format check)', () => {
+          return chai.request(cfg.baseUrl)
+            .get(route.replace(':spiId', 'I\'m totally wrong'))
+            .set('x-access-token', testUsers.readAPI.token)
+            .catch((err) => {
+              expect(err).to.have.status(400);
+            });
+        });
       });
 
       describe('PUT', () => {
-        it('should update SPI with :name', () => {
+        it('should update SPI with :spiId', () => {
           let testSPIsInDB = module.parent.exports.testSPIsInDB;
           return chai.request(cfg.baseUrl)
-            .put(route.replace(':name', testSPIsInDB[0].name))
+            .put(route.replace(':spiId', testSPIsInDB[0]._id))
             .set('x-access-token', testUsers.writeAPI.token)
             .send({
+              name: 'UpdatedSPI',
               protocol: 'HTTP',
               encrypted: false,
               endpoint_url: 'http://data.blackhole.com',
@@ -103,16 +112,18 @@ let run = (route) => {
             .then((res) => {
               let updatedSPI = res.body.updated;
               expect(res).to.have.status(200);
+              _.assign(testSPIsInDB[0], updatedSPI);
               testMessage(testSPIsInDB[0].name + ' has been updated', res.body);
               expect(updatedSPI._id).to.equal(testSPIsInDB[0]._id);
+              expect(updatedSPI.name).to.equal('UpdatedSPI');
               expect(updatedSPI.protocol).to.equal('HTTP');
               expect(updatedSPI.encrypted).to.be.false;
               expect(updatedSPI.endpoint_url).to.equal('http://data.blackhole.com');
             });
         });
-        it('should return 404 when no SPI with :name is found', () => {
+        it('should return 404 when no SPI with :spiId is found', () => {
           return chai.request(cfg.baseUrl)
-            .put(route.replace(':name', 'not in DB'))
+            .put(route.replace(':spiId', 'aaaaaaaaaaaaaaaaaaaaaaaa'))
             .set('x-access-token', testUsers.writeAPI.token)
             .send({ shouldnt: 'matter' })
             .catch((err) => {
@@ -122,10 +133,10 @@ let run = (route) => {
       });
 
       describe('DELETE', () => {
-        it('should delete SPI with :name', () => {
+        it('should delete SPI with :spiId', () => {
           let testSPIsInDB = module.parent.exports.testSPIsInDB;
           return chai.request(cfg.baseUrl)
-            .delete(route.replace(':name', testSPIsInDB[0].name))
+            .delete(route.replace(':spiId', testSPIsInDB[0]._id))
             .set('x-access-token', testUsers.writeAPI.token)
             .then((res) => {
               expect(res).to.have.status(200);
@@ -133,9 +144,9 @@ let run = (route) => {
               testSPIsInDB.shift();
             });
         });
-        it('should return 404 when no SPI with :name is found', () => {
+        it('should return 404 when no SPI with :spiId is found', () => {
           return chai.request(cfg.baseUrl)
-            .delete(route.replace(':name', 'not in DB'))
+            .delete(route.replace(':spiId', 'aaaaaaaaaaaaaaaaaaaaaaaa'))
             .set('x-access-token', testUsers.writeAPI.token)
             .catch((err) => {
               expect(err).to.have.status(404);

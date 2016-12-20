@@ -62,6 +62,7 @@ userSchema.methods.validatePassword = function(password) {
 
 userSchema.methods.getTokenData = function() {
   return {
+    userId: this._id,
     username: this.username,
     access: this.access
   };

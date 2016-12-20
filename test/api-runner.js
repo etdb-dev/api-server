@@ -51,8 +51,8 @@ let runTests = () => {
         authTests.run('/auth');
       });
 
-      describe('/auth/:user', () => {
-        authTests.run('/auth/:user');
+      describe('/auth/:userId', () => {
+        authTests.run('/auth/:userId');
       });
 
       describe('/v0/apps', () => {
@@ -65,8 +65,8 @@ let runTests = () => {
       describe('/v0/spis', () => {
         spiTests.run('/v0/spis');
       });
-      describe('/v0/spis/:name', () => {
-        spiTests.run('/v0/spis/:name');
+      describe('/v0/spis/:spiId', () => {
+        spiTests.run('/v0/spis/:spiId');
       });
     });
   });
@@ -78,7 +78,6 @@ let setup = () => {
     _.forOwn(testUsers, (userData) => !userData.noauto ? _testUsersInDB.push(new User(userData)) : void 0);
     return User.create(_testUsersInDB).then((docs) => {
       expect(docs.length).to.equal(_testUsersInDB.length);
-      console.log('getting tokens');
       _.each(testUsers, (user, key) => setTokenFor(key));
     });
   });
