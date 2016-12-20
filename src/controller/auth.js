@@ -6,6 +6,7 @@ const _ = require('lodash');
 const config = require('../config');
 const mw = require('../middleware');
 const User = require('../db/user');
+const accessDefaults = require('../const').accessDefaults;
 
 let authController = {};
 
@@ -47,7 +48,7 @@ authController.addUser = (req, res) => {
     let user = new User({
       'username': data.username,
       'password': data.password,
-      'access': _.assign(authController.accessDefaults, data.access || {})
+      'access': _.assign(accessDefaults, data.access || {})
     });
 
     user.save().then((userDoc) => {
@@ -86,7 +87,7 @@ authController.updateUser = (req, res) => {
     let updates = req.body;
 
     if (updates.access) {
-      updates.access = grantedBy === 'self' ? req.tokenPayload.access : _.assign(authController.accessDefaults, req.body.access || {});;
+      updates.access = grantedBy === 'self' ? req.tokenPayload.access : _.assign(accessDefaults, req.body.access || {});;
     }
 
     User.findOne({ _id: req.params.userId }).then((userDoc) => {
