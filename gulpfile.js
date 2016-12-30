@@ -25,8 +25,19 @@ gulp.task('dev', function() {
    return gutil.log('Running in dev mode!'); 
 });
 
+gulp.task('deploy', function() {
+    // NOTE: run tests on server
+    // deploy on server
+})
+
+gulp.task('publish', function() {
+    // NOTE: publish on github
+})
+
 gulp.task('run', function() {
-    exec('npm start', function(err, stdout, stderr) {
+    // NOTE: Use fork
+    // fork('./etdb.js')
+    exec('node ./etdb.js', function(err, stdout, stderr) {
         console.log(stdout);
         console.log(stderr);
     });
