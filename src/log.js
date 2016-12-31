@@ -203,6 +203,7 @@ let registerGlobals = () => {
 /**
  * Returns install- or default logger
  * @param  {?string} logger Name of logger to return
+ * @memberOf module:src/log
  * @return {module:src/log}
  */
 module.exports = (install) => {
