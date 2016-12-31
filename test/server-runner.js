@@ -4,8 +4,9 @@ const db = require('../src/db');
 const User = db.user;
 
 const dbTests = require('./server/db');
-const accessRequestTests = require('./server/access-request.cls.js');
+const accessRequestTests = require('./server/access-request.cls');
 const accessRequestUser = require('./bench/json/users.json').accessRequestUser;
+const constantsTests = require('./server/constants');
 
 const _testDocuments = {};
 
@@ -35,9 +36,12 @@ describe('ETdb api-server', () => {
     });
   });
 
-  describe('Classes', function() {
+  describe('Classes/Constants', function() {
     it('', () => {
       accessRequestTests(_testDocuments.accessRequestUser);
+    });
+    it('', () => {
+      constantsTests();
     });
   });
 

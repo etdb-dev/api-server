@@ -2,7 +2,7 @@
 
 const _ = require('lodash');
 
-const _accessDefaults = require('../../src/const').accessDefaults;
+const _accessDefaults = require('../../src/constants').accessDefaults;
 const noRights = _.mapValues(_accessDefaults, () => false);
 
 let createAccessObjectFor = (accessType) => {
