@@ -18,8 +18,8 @@ module.exports = (accessRequestUser) => {
           access: accessRequestUser.access
         }
       },
-      res: void 0,
-      accessType: 'isAdmin',
+      res: 'foo',
+      neededLevel: 'isAdmin',
       allowSelf: accessRequestUser._id
     };
 
@@ -34,11 +34,11 @@ module.exports = (accessRequestUser) => {
     });
 
     it('should have property res', () => {
-      expect(testRequest).to.have.property('res', void 0);
+      expect(testRequest).to.have.property('res', 'foo');
     });
 
-    it('should have property accessType', () => {
-      expect(testRequest).to.have.property('accessType', _data.accessType);
+    it('should have property neededLevel', () => {
+      expect(testRequest).to.have.property('neededLevel', _data.neededLevel);
     });
 
     it('should have property allowSelf', () => {
