@@ -3,6 +3,10 @@
   "version": "0.0.2",
   "description": "E.T. DB - Spotting the marsians in your app store",
   "author": "Raphael Beer <raphael.beer@protonmail.com>",
+  "contributors": [
+    "Danial Jankowski (https://github.com/dj95/)",
+    "Raphael Beer <raphael.beer@protonmail.com> (https://github.com/rbeer/)"
+  ],
   "license": "MIT",
   "dependencies": {
     "basic-auth": "^1.0.4",
