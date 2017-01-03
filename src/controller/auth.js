@@ -7,7 +7,7 @@ const _ = require('lodash');
 const config = require('../config');
 const db = require('../db');
 const User = db.user;
-const accessDefaults = require('../const').accessDefaults;
+const accessDefaults = require('../constants').accessDefaults;
 
 let authController = {};
 

@@ -5,10 +5,10 @@ const chai = require('chai');
 chai.use(require('chai-http'));
 const expect = chai.expect;
 
-const cfg = require('./config.json');
+const cfg = require('../config.json');
 
-const testUsers = require('./bench/users');
-const helper = require('./helper');
+const testUsers = require('../bench/users');
+const helper = require('../helper');
 
 let testMessage = helper.testMessage;
 let test401 = helper.test401;

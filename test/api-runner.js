@@ -13,7 +13,8 @@ const authController = require('../src/controller/auth');
 require('../src/log')();
 
 const testUsers = require('./bench/users');
-const authTests = require('./auth');
+
+const authTests = require('./api/auth');
 const appsTests = require('./api/apps');
 const spiTests = require('./api/spis');
 
