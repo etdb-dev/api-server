@@ -20,6 +20,7 @@ server.start = () => {
       logVerbose('Registering router: ' + routerKeys[idx]);
       apiApp.use(router);
     });
+    apiApp.use(logError);
 
     let cfg = config.get('server');
     let port = cfg.port || 3000;
