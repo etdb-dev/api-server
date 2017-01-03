@@ -23,7 +23,7 @@
     AccessLevels: _LEVELS,
 
     /**
-     * AccessLevels for basic API read access.
+     * AccessLevel templates for API access
      * @memberOf module:src/constants
      * @type {Object.<AccessRequest.AccessLevels>}
      */
