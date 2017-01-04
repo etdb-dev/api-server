@@ -207,28 +207,29 @@ let registerGlobals = () => {
  * @return {module:src/log}
  */
 module.exports = (install) => {
-  if (install) {
-    log.winston = new winston.Logger({
-      levels: logLevels.levels,
-      transports: [
-        new (winston.transports.Console)({
-          name: 'cli-install',
-          level: 'debug',
-          formatter: formatCLI
-        }),
-        new (winston.transports.File)({
-          name: 'fs-install',
-          level: 'info',
-          colorize: false,
-          filename: './install.log',
-          json: false,
-          tailable: true,
-          formatter: formatFS
-        })
-      ]
-    });
-  } else {
-    if (!log.winston) {
+
+  if (!log.winston) {
+    if (install) {
+      log.winston = new winston.Logger({
+        levels: logLevels.levels,
+        transports: [
+          new (winston.transports.Console)({
+            name: 'cli-install',
+            level: 'debug',
+            formatter: formatCLI
+          }),
+          new (winston.transports.File)({
+            name: 'fs-install',
+            level: 'info',
+            colorize: false,
+            filename: './install.log',
+            json: false,
+            tailable: true,
+            formatter: formatFS
+          })
+        ]
+      });
+    } else {
       log.winston = new winston.Logger({
         levels: logLevels.levels,
         transports: [
@@ -252,7 +253,7 @@ module.exports = (install) => {
         ]
       });
     }
+    registerGlobals();
   }
-  registerGlobals();
   return log.winston;
 };
