@@ -84,6 +84,13 @@ middleware.buildAccessRequest = (req, res, next) => {
 
 let getAccessLevel = (req) => {
   let methods = routeLevels[req.originalUrl];
+  if (!methods) {
+    let lastSlashIdx = req.originalUrl.lastIndexOf('/') + 1;
+    if (lastSlashIdx < req.originalUrl.length) {
+      let routeUrl = req.originalUrl.slice(0, lastSlashIdx) + '*';
+      methods = routeLevels[routeUrl];
+    }
+  }
   return methods ? methods[req.method] || 'none' : 'none';
 };
 
