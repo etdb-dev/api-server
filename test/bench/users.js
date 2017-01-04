@@ -12,7 +12,7 @@ let _testUsers = _.reduce(constants.AccessLevels, (users, username) => {
   let pwSalt = Math.round(Math.random() * 1000000).toString(16);
   let accessObject = createAccessObjectFor(username);
 
-  accessObject.test = true;
+  accessObject.testing = true;
 
   users[username] = {
     username: nameSalt + username,

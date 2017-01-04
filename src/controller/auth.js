@@ -65,9 +65,9 @@ authController.canAccess = (req, res, accessType, allowSelf) => {
 };
 
 authController.denyAccess = (res, username, accessType) => {
-  
+
   return new Promise((resolve, reject) => {
-    
+
     logWarn(`Access denied to ${username} on ${accessType}`);
     res.status(401).json({
       message: `You don't have the permission to ${accessType}.`
