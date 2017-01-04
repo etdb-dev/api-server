@@ -43,7 +43,8 @@ const userSchema = mongoose.Schema({
     isAdmin: { type: Boolean, default: false },
     manageUsers: { type: Boolean, default: false },
     readAPI: { type: Boolean, default: true },
-    writeAPI: { type: Boolean, default: false }
+    writeAPI: { type: Boolean, default: false },
+    testing: { type: Boolean, default: false }
   }
 });
 

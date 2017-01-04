@@ -75,20 +75,32 @@ let runTests = () => {
 };
 
 let setup = () => {
-  return db.connect().then(() => {
-    _.forOwn(testUsers, (userData) => !userData.noauto ? _testUsersInDB.push(new User(userData)) : void 0);
-    return User.create(_testUsersInDB).then((docs) => {
+  return db.connect().then(new Promise((resolve, reject) => {
+
+    let afterCreate = (docs) => {
       expect(docs.length).to.equal(_testUsersInDB.length);
       _.each(testUsers, (user, key) => setTokenFor(key));
+      resolve();
+    };
+
+    _.forOwn(testUsers, (userData) => !userData.noauto ? _testUsersInDB.push(new User(userData)) : void 0);
+
+    User.create(_testUsersInDB).then(afterCreate).catch((err) => {
+      if (err.name === 'MongoError' && err.code === 11000) {
+        return User.remove({ 'access.testing': true }).then(() => {
+          return User.create(_testUsersInDB).then(afterCreate);
+        });
+      }
+      reject(err);
     });
-  });
+
+  }));
 };
 
 let cleanup = () => {
   describe('Cleanup', () => {
     it('Delete all test users', () => {
-      let testUser_ids = _.map(_testUsersInDB, (user) => user._id);
-      return User.remove({ _id: { $in: testUser_ids } }).then((delCmd) => {
+      return User.remove({ 'access.testing': true }).then((delCmd) => {
         expect(delCmd.result.ok).to.equal(1);
         expect(delCmd.result.n).to.equal(_testUsersInDB.length - 1);
       });

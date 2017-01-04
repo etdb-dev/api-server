@@ -6,7 +6,8 @@
       "readAPI": false,
       "writeAPI": false,
       "isAdmin": false,
-      "manageUsers": false
+      "manageUsers": false,
+      "testing": true
     },
     "noauto": true
   },
@@ -17,7 +18,8 @@
       "readAPI": false,
       "writeAPI": false,
       "isAdmin": false,
-      "manageUsers": false
+      "manageUsers": false,
+      "testing": true
     }
   },
   "accessRequestUser": {
@@ -28,7 +30,8 @@
       "readAPI": false,
       "writeAPI": false,
       "isAdmin": false,
-      "manageUsers": false
+      "manageUsers": false,
+      "testing": true
     }
   }
 }
