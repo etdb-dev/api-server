@@ -6,7 +6,6 @@ const jwt = require('jsonwebtoken');
 const config = require('./config');
 const db = require('./db');
 const AccessRequest = require('./access-request.cls');
-const routeLevels = require('./route-access-levels.map.json');
 
 let middleware = {};
 
@@ -66,13 +65,7 @@ middleware.doBasicAuth = (req, res, next) => {
 };
 
 middleware.buildAccessRequest = (req, res, next) => {
-  let token = req.tokenPayload;
-  req.accessRequest = new AccessRequest({
-    req: req,
-    res: res,
-    neededLevel: getAccessLevel(req),
-    allowSelf: token.userId
-  });
+  req.accessRequest = new AccessRequest(req, res);
   if (req.accessRequest.neededLevel === 'none') {
     logWarn(`Access to ${req.originalUrl} isn't defined!`);
     logWarn('Please add an access level to /src/route-access-levels.map.json!');
@@ -80,18 +73,6 @@ middleware.buildAccessRequest = (req, res, next) => {
     logInfo('Issued AccessRequest for ' + req.originalUrl);
   }
   next();
-};
-
-let getAccessLevel = (req) => {
-  let methods = routeLevels[req.originalUrl];
-  if (!methods) {
-    let lastSlashIdx = req.originalUrl.lastIndexOf('/') + 1;
-    if (lastSlashIdx < req.originalUrl.length) {
-      let routeUrl = req.originalUrl.slice(0, lastSlashIdx) + '*';
-      methods = routeLevels[routeUrl];
-    }
-  }
-  return methods ? methods[req.method] || 'none' : 'none';
 };
 
 let failAuthRequest = (res) => {
