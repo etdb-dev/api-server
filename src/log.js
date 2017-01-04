@@ -191,21 +191,12 @@ let buildModuleTag = () => {
   return fnMatch ? `/${fnMatch[1]}${config.get('longLogTags') ? fnMatch[2] : ''}` : 'not/found';
 };
 
-let expressHandler = function(err, ...logArgs) {
-  if (err instanceof Error) {
-    logArgs[1].sendStatus(500);
-  } else {
-    logArgs.shift(err);
-  }
-  log.winston[this](err, ...logArgs);
-};
-
 let registerGlobals = () => {
   _.mapKeys(logLevels.levels, (value, key) => {
     let debugLog = process.env.etdb_testing ? () => void 0 : log.winston.debug;
     let globalKey = `log${key[0].toUpperCase()}${key.slice(1)}`;
     debugLog(`Registering global.${globalKey} -> log.winston.${key}`);
-    global[globalKey] = process.env.etdb_testing ? () => void 0 : expressHandler.bind(key);
+    global[globalKey] = process.env.etdb_testing ? () => void 0 : log.winston[key];
   });
 };
 
