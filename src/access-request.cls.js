@@ -22,7 +22,8 @@ class AccessRequest {
    * @param  {Express.Request}    data.req         Express req of the handled request.
    * @param  {Express.Response}   data.res         Express res of the handled request.
    * @param  {String}             data.neededLevel AccessLevel the request needs granted.
-   * @param  {?ObjectId}           data.allowSelf   Mongo ObjectId, identifying user to allow editing/listing own data.
+   * @param  {?ObjectId}          data.allowSelf   Mongo ObjectId, identifying user to allow editing/listing own data.
+   * @throws {TypeError}          If !data.req || !data.res || !data.neededLevel
    * @return {AccessRequest}
    */
   constructor(data) {

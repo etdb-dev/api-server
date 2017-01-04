@@ -5,6 +5,8 @@ const jwt = require('jsonwebtoken');
 
 const config = require('./config');
 const db = require('./db');
+const AccessRequest = require('./access-request.cls');
+const routeLevels = require('./route-access-levels.map.json');
 
 let middleware = {};
 
@@ -61,6 +63,28 @@ middleware.doBasicAuth = (req, res, next) => {
     logWarn(`User (uid=${name}) not found`);
     return failAuthRequest(res);
   });
+};
+
+middleware.buildAccessRequest = (req, res, next) => {
+  let token = req.tokenPayload;
+  req.accessRequest = new AccessRequest({
+    req: req,
+    res: res,
+    neededLevel: getAccessLevel(req),
+    allowSelf: token.userId
+  });
+  if (req.accessRequest.neededLevel === 'none') {
+    logWarn(`Access to ${req.originalUrl} isn't defined!`);
+    logWarn('Please add an access level to /src/route-access-levels.map.json!');
+  } else {
+    logInfo('Issued AccessRequest for ' + req.originalUrl);
+  }
+  next();
+};
+
+let getAccessLevel = (req) => {
+  let methods = routeLevels[req.originalUrl];
+  return methods ? methods[req.method] || 'none' : 'none';
 };
 
 let failAuthRequest = (res) => {
