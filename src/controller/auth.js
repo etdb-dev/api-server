@@ -37,47 +37,41 @@ authController.getToken = (req, res, next) => {
 
 authController.canAccess = (accessRequest) => {
   return new Promise((resolve, reject) => {
-    console.log(accessRequest.allowSelf);
-    let { req, res, accessType, allowSelf } = {
-      req: accessRequest.req,
-      res: accessRequest.res,
-      accessType: accessRequest.neededLevel,
-      allowSelf: accessRequest.allowSelf.userId
-     };
 
-    if (!accessType) {
-      return reject(res, req.tokenPayload.username, accessType);
+    if (!accessRequest.neededLevel) {
+      return reject(accessRequest.res, accessRequest.tokenData.username, accessRequest.neededLevel);
     }
 
-    let selfTest;
-
-    User.findOne({ _id: allowSelf }).then(() => {
-      selfTest = true;
-    }).catch(() => {
-      selfTest = false;
-    }).finally(() => {
-      let access = req.tokenPayload.access;
-      let isAdmin = access['isAdmin'];
-      let accessTest = access[accessType];
-      let grantedBy = isAdmin ? 'isAdmin' : accessTest ? accessType : selfTest ? 'self' : '';
-
+    let testAccess = (selfTest) => {
+      let isAdmin = accessRequest.userAccess['isAdmin'];
+      let accessTest = accessRequest.userAccess[accessRequest.neededLevel];
+      let grantedBy = isAdmin ? 'isAdmin' : accessTest ? accessRequest.neededLevel : selfTest ? 'self' : '';
+  
       if (isAdmin || accessTest || selfTest) {
-        logSuccess(`Requested access level (${accessType}) satisfied by: ${grantedBy}`);
+        logSuccess(`Requested access level (${accessRequest.neededLevel}) satisfied by: ${grantedBy}`);
         return resolve(grantedBy);
       }
-      return reject(req, res, accessType, req.tokenPayload.username);
-    });
+      return reject(accessRequest.req, accessRequest.res, accessRequest.neededLevel, accessRequest.tokenData.username);
+    };
+
+    if (accessRequest.allowSelf.allow) {
+      User.findOne({ _id: accessRequest.allowSelf.userId })
+      .then(() => testAccess(true))
+      .catch(() => testAccess(false));
+    } else {
+      testAccess(false);
+    }
 
   });
 };
 
-authController.denyAccess = (res, username, accessType) => {
+authController.denyAccess = (res, username, neededLevel) => {
 
   return new Promise((resolve, reject) => {
 
-    logWarn(`Access denied to ${username} on ${accessType}`);
+    logWarn(`Access denied to ${username} on ${neededLevel}`);
     res.status(401).json({
-      message: `You don't have the permission to ${accessType}.`
+      message: `You don't have the permission to ${neededLevel}.`
     });
   });
 
