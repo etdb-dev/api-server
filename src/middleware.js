@@ -68,13 +68,7 @@ middleware.buildAccessRequest = (req, res, next) => {
   req.accessRequest = new AccessRequest(req, res);
   if (req.accessRequest.neededLevel === 'none') {
     logWarn(`Access to ${req.originalUrl} isn't defined!`);
-    logWarn('Please add an access level to /src/route-access-levels.map.json, like:');
-    let dummyLevelMap = {
-      [req.originalUrl]: {
-        [req.method]: [ 'readApi', true ]
-      }
-    };
-    logWarn(JSON.stringify(dummyLevelMap));
+    logWarn('Please add an access level to /src/route-access-levels.map.json!');
   } else {
     logInfo('Issued AccessRequest for ' + req.originalUrl);
   }
