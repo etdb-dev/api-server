@@ -4,7 +4,14 @@ const authRouter = require('express-promise-router')();
 const authController = require('../controller/auth');
 const middleware = require('../middleware');
 
-authRouter.use('/auth', middleware.doBasicAuth);
+const allRoutesMiddlewares = [
+  // validate user by request's basic auth data; creates token at req.tokenPayload
+  middleware.doBasicAuth,
+  // create AccessRequest instance and expose at req.accessRequest
+  middleware.buildAccessRequest
+];
+
+authRouter.use('/auth', allRoutesMiddlewares);
 
 authRouter.get('/auth', authController.getToken);
 authRouter.get('/auth/users', authController.listUsers);

@@ -2,24 +2,25 @@
 
 const _ = require('lodash');
 
-const _accessDefaults = require('../../src/const').accessDefaults;
-const noRights = _.mapValues(_accessDefaults, () => false);
+const constants = require('../../src/constants');
 
-let createAccessObjectFor = (accessType) => {
-  let accessValue = {};
-  accessValue[accessType] = true;
-  return _.defaults(accessValue, noRights);
-};
+let createAccessObjectFor = (accessLevel) => _.defaults({ [accessLevel]: true },
+                                                        constants.AccessDefaults.denyAll);
 
-let _testUsers = _.reduce(_accessDefaults, (acc, val, key) => {
+let _testUsers = _.reduce(constants.AccessLevels, (users, username) => {
   let nameSalt = Math.round(Math.random() * 1000000).toString(16);
   let pwSalt = Math.round(Math.random() * 1000000).toString(16);
-  acc[key] = {
-    username: nameSalt + key,
-    password: pwSalt + key,
-    access: createAccessObjectFor(key)
+  let accessObject = createAccessObjectFor(username);
+
+  accessObject.testing = true;
+
+  users[username] = {
+    username: nameSalt + username,
+    password: pwSalt + username,
+    access: accessObject
   };
-  return acc;
+
+  return users;
 }, {});
 
 _.assign(_testUsers, require('./json/users.json'));

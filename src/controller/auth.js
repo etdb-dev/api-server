@@ -4,10 +4,11 @@ const Promise = require('bluebird');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
 
+const AccessRequest = require('../access-request.cls');
 const config = require('../config');
 const db = require('../db');
 const User = db.user;
-const accessDefaults = require('../const').accessDefaults;
+const accessDefaults = require('../constants').accessDefaults;
 
 let authController = {};
 
@@ -22,7 +23,7 @@ authController.signToken = (tokenData) => {
 };
 
 authController.getToken = (req, res, next) => {
-  authController.canAccess(req, res, 'readAPI')
+  authController.canAccess(new AccessRequest(req, res))
   .then(() => {
     logDebug('Creating token');
     let tokenData = req.tokenPayload;
@@ -34,50 +35,50 @@ authController.getToken = (req, res, next) => {
   });
 };
 
-authController.canAccess = (req, res, accessType, allowSelf) => {
-
+authController.canAccess = (accessRequest) => {
   return new Promise((resolve, reject) => {
 
-    if (!accessType) {
-      return reject(res, req.tokenPayload.username, accessType);
+    if (!accessRequest.neededLevel) {
+      return reject(accessRequest.res, accessRequest.tokenData.username, accessRequest.neededLevel);
     }
 
-    let selfTest;
-
-    User.findOne({ _id: allowSelf }).then(() => {
-      selfTest = true;
-    }).catch(() => {
-      selfTest = false;
-    }).finally(() => {
-      let access = req.tokenPayload.access;
-      let isAdmin = access['isAdmin'];
-      let accessTest = access[accessType];
-      let grantedBy = isAdmin ? 'isAdmin' : accessTest ? accessType : selfTest ? 'self' : '';
-
+    let testAccess = (selfTest) => {
+      let isAdmin = accessRequest.userAccess['isAdmin'];
+      let accessTest = accessRequest.userAccess[accessRequest.neededLevel];
+      let grantedBy = isAdmin ? 'isAdmin' : accessTest ? accessRequest.neededLevel : selfTest ? 'self' : '';
+  
       if (isAdmin || accessTest || selfTest) {
-        logSuccess(`Requested access level (${accessType}) satisfied by: ${grantedBy}`);
+        logSuccess(`Requested access level (${accessRequest.neededLevel}) satisfied by: ${grantedBy}`);
         return resolve(grantedBy);
       }
-      return reject(req, res, accessType, req.tokenPayload.username);
-    });
+      return reject(accessRequest.req, accessRequest.res, accessRequest.neededLevel, accessRequest.tokenData.username);
+    };
+
+    if (accessRequest.allowSelf.allow) {
+      User.findOne({ _id: accessRequest.allowSelf.userId })
+      .then(() => testAccess(true))
+      .catch(() => testAccess(false));
+    } else {
+      testAccess(false);
+    }
 
   });
 };
 
-authController.denyAccess = (res, username, accessType) => {
-  
+authController.denyAccess = (res, username, neededLevel) => {
+
   return new Promise((resolve, reject) => {
-    
-    logWarn(`Access denied to ${username} on ${accessType}`);
+
+    logWarn(`Access denied to ${username} on ${neededLevel}`);
     res.status(401).json({
-      message: `You don't have the permission to ${accessType}.`
+      message: `You don't have the permission to ${neededLevel}.`
     });
   });
 
 };
 
 authController.addUser = (req, res) => {
-  authController.canAccess(req, res, 'manageUsers')
+  authController.canAccess(new AccessRequest(req, res))
   .then(() => {
     let data = req.body;
     let tokenData = req.tokenPayload;
@@ -109,7 +110,7 @@ authController.addUser = (req, res) => {
 };
 
 authController.deleteUser = (req, res) => {
-  authController.canAccess(req, res, 'manageUsers', req.params.userId)
+  authController.canAccess(new AccessRequest(req, res))
   .then(() => {
     User.findOneAndRemove({ _id: req.params.userId }).then((deletedDoc) => {
       if (!deletedDoc) {
@@ -125,7 +126,7 @@ authController.deleteUser = (req, res) => {
 };
 
 authController.updateUser = (req, res) => {
-  authController.canAccess(req, res, 'manageUsers', req.params.userId)
+  authController.canAccess(new AccessRequest(req, res))
   .then((grantedBy) => {
     let updates = req.body;
 
@@ -146,7 +147,7 @@ authController.updateUser = (req, res) => {
 
 authController.listUsers = (req, res) => {
   let username = req.tokenPayload.username;
-  authController.canAccess(req, res, 'manageUsers', req.tokenPayload.userId)
+  authController.canAccess(new AccessRequest(req, res))
   .then((grantedBy) => {
     let findFilter = grantedBy === 'self' ? { username: username } : {};
     User.find(findFilter, {_id: 0, username: 1, access: 1 }).then((docs) => {
