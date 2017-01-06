@@ -31,7 +31,7 @@ const logLevels = {
   colors: {
     error: 'red',
     warn: 'yellow',
-    info: 'blue',
+    info: 'white',
     verbose: 'cyan',
     debug: 'magenta',
     success: 'green',
