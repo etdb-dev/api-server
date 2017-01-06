@@ -1,6 +1,6 @@
 {
   "name": "etdb-api-server",
-  "version": "0.0.2",
+  "version": "0.0.9",
   "description": "E.T. DB - Spotting the marsians in your app store",
   "author": "Raphael Beer <raphael.beer@protonmail.com>",
   "contributors": [
