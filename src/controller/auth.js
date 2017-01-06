@@ -4,6 +4,7 @@ const Promise = require('bluebird');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
 
+const AccessRequest = require('../access-request.cls');
 const config = require('../config');
 const db = require('../db');
 const User = db.user;
@@ -22,7 +23,7 @@ authController.signToken = (tokenData) => {
 };
 
 authController.getToken = (req, res, next) => {
-  authController.canAccess(req, res, 'readAPI')
+  authController.canAccess(new AccessRequest(req, res))
   .then(() => {
     logDebug('Creating token');
     let tokenData = req.tokenPayload;
@@ -34,9 +35,15 @@ authController.getToken = (req, res, next) => {
   });
 };
 
-authController.canAccess = (req, res, accessType, allowSelf) => {
-
+authController.canAccess = (accessRequest) => {
   return new Promise((resolve, reject) => {
+    console.log(accessRequest.allowSelf);
+    let { req, res, accessType, allowSelf } = {
+      req: accessRequest.req,
+      res: accessRequest.res,
+      accessType: accessRequest.neededLevel,
+      allowSelf: accessRequest.allowSelf.userId
+     };
 
     if (!accessType) {
       return reject(res, req.tokenPayload.username, accessType);
@@ -77,7 +84,7 @@ authController.denyAccess = (res, username, accessType) => {
 };
 
 authController.addUser = (req, res) => {
-  authController.canAccess(req, res, 'manageUsers')
+  authController.canAccess(new AccessRequest(req, res))
   .then(() => {
     let data = req.body;
     let tokenData = req.tokenPayload;
@@ -109,7 +116,7 @@ authController.addUser = (req, res) => {
 };
 
 authController.deleteUser = (req, res) => {
-  authController.canAccess(req, res, 'manageUsers', req.params.userId)
+  authController.canAccess(new AccessRequest(req, res))
   .then(() => {
     User.findOneAndRemove({ _id: req.params.userId }).then((deletedDoc) => {
       if (!deletedDoc) {
@@ -125,7 +132,7 @@ authController.deleteUser = (req, res) => {
 };
 
 authController.updateUser = (req, res) => {
-  authController.canAccess(req, res, 'manageUsers', req.params.userId)
+  authController.canAccess(new AccessRequest(req, res))
   .then((grantedBy) => {
     let updates = req.body;
 
@@ -146,7 +153,7 @@ authController.updateUser = (req, res) => {
 
 authController.listUsers = (req, res) => {
   let username = req.tokenPayload.username;
-  authController.canAccess(req, res, 'manageUsers', req.tokenPayload.userId)
+  authController.canAccess(new AccessRequest(req, res))
   .then((grantedBy) => {
     let findFilter = grantedBy === 'self' ? { username: username } : {};
     User.find(findFilter, {_id: 0, username: 1, access: 1 }).then((docs) => {
