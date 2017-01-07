@@ -1,5 +1,3 @@
-docs/
-!src/docs/
 logs/
 node_modules/
 *.log*
