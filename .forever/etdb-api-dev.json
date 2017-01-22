@@ -1,0 +1,8 @@
+{
+  "uid": "etdb-api-dev",
+  "sourceDir": "/var/wwn/etdb/api-server",
+  "append": true,
+  "watch": false,
+  "pidFile": ".dev/api-server.pid",
+  "logFile": ".dev/api-server.log"
+}

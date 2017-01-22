@@ -12,6 +12,7 @@
     "colors": "^1.1.2",
     "express": "^4.14.0",
     "express-promise-router": "^1.1.1",
+    "forever-monitor": "^1.7.1",
     "inquirer": "^2.0.0",
     "jsonwebtoken": "^7.1.9",
     "lodash": "^4.16.6",
