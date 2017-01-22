@@ -2,7 +2,7 @@ const gulp = require('gulp');
 const gutil = require('gulp-util');
 const jshint = require('gulp-jshint');
 
-const forever = require('forever-monitor');
+const forever = require('forever');
 
 gulp.task('default', function() {
   return gutil.log('Help\n\nUse one of the following parameters:\n\n' +
@@ -23,8 +23,11 @@ gulp.task('watch', function() {
 });
 
 gulp.task('dev', function(done) {
-  let child = new (forever.Monitor)('etdb.js', require('./.forever/etdb-api-dev.json'));
-  child.start();
+
+  let foreverConf = require('./.forever/etdb-api-dev.json');
+  gutil.log(foreverConf);
+  forever.startDaemon('etdb.js', foreverConf);
+
   return gutil.log('Running in dev mode!');
 });
 
