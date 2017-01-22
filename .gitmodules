@@ -1,0 +1,3 @@
+[submodule "docs"]
+	path = docs
+	url = backups:~/etdb-dev/docs.git

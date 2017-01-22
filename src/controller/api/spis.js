@@ -2,6 +2,7 @@
 
 const _ = require('lodash');
 
+const AccessRequest = require('../../access-request.cls');
 const authController = require('../auth');
 const SPI = require('../../db/spi');
 const utils = require('../../utils');
@@ -9,7 +10,7 @@ const utils = require('../../utils');
 let spisController = {};
 
 spisController.addSPI = (req, res) => {
-  authController.canAccess(req, res, 'writeAPI')
+  authController.canAccess(new AccessRequest(req, res))
   .then(() => {
     let newSPI = new SPI(req.body);
     newSPI.save().then((spiDoc) => {
@@ -29,7 +30,7 @@ spisController.addSPI = (req, res) => {
 };
 
 spisController.listSPIs = (req, res) => {
-  authController.canAccess(req, res, 'readAPI')
+  authController.canAccess(new AccessRequest(req, res))
   .then(() => {
     let spiId = req.params.spiId;
 
@@ -54,7 +55,7 @@ spisController.listSPIs = (req, res) => {
 };
 
 spisController.updateSPI = (req, res) => {
-  authController.canAccess(req, res, 'writeAPI')
+  authController.canAccess(new AccessRequest(req, res))
   .then(() => {
 
     if (!utils.isObjectId(req.params.spiId)) {
@@ -79,7 +80,7 @@ spisController.updateSPI = (req, res) => {
 };
 
 spisController.deleteSPI = (req, res) => {
-  authController.canAccess(req, res, 'writeAPI')
+  authController.canAccess(new AccessRequest(req, res))
   .then(() => {
 
     if (!utils.isObjectId(req.params.spiId)) {

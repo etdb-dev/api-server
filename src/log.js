@@ -31,7 +31,7 @@ const logLevels = {
   colors: {
     error: 'red',
     warn: 'yellow',
-    info: 'blue',
+    info: 'white',
     verbose: 'cyan',
     debug: 'magenta',
     success: 'green',
@@ -74,7 +74,7 @@ let log = {
  * formatCLI(options);
  * > '[51:56.337] [/path/filename] - debug: debug test'
  */
-function formatCLI(options) {
+let formatCLI = (options) => {
   // _.keys(options).forEach((key) => console.log(` * @property {${typeof options[key]}} ${key}`));
   let hasMeta = Object.keys(options.meta).length > 0;
   let label = buildModuleTag();
@@ -83,7 +83,7 @@ function formatCLI(options) {
   let meta = nodeUtil.inspect(options.meta);
   let message = colorize(hasMeta ? `${options.message} ${meta}` : options.message);
   return `${timestamp} [${label}] - ${level}: ${message}`;
-}
+};
 
 /**
  * Formating factory for nice winston file system output
@@ -94,13 +94,13 @@ function formatCLI(options) {
  * formatFS(options);
  * > '[51:56.337] [/path/filename] - debug: debug test'
  */
-function formatFS(options) {
+let formatFS = (options) => {
   // [ISO-date] [label]
   let label = buildModuleTag();
   let level = options.level.slice(0, 1).toUpperCase();
   let isoDate = (new Date()).toISOString();
   return `[${isoDate} > ${level} < ${label}]: ${options.message}`;
-}
+};
 
 /**
  * [buildTimeStamp description]
@@ -117,7 +117,7 @@ function formatFS(options) {
  * buildTimeStamp(true);
  * > '[70312.8]'
  */
-function buildTimeStamp(useStardates) {
+let buildTimeStamp = (useStardates) => {
   let d = new Date();
   let stamp;
 
@@ -136,7 +136,7 @@ function buildTimeStamp(useStardates) {
     stamp = `[${fields.mins}:${fields.secs}.${fields.mils}]`;
   }
   return colorize(stamp, true);
-}
+};
 
 /**
  * Colorizes CLI output by its loglevel
@@ -151,7 +151,7 @@ function buildTimeStamp(useStardates) {
  * // works with log level mappings
  * colorize('Answering / route [c=debug]GET[\\c]');
  */
-function colorize(msg, isTstamp) {
+let colorize = (msg, isTstamp) => {
   let color;
   if (isTstamp) {
     color = logLevels.colors['timestamp'];
@@ -170,14 +170,14 @@ function colorize(msg, isTstamp) {
     color = 'reset';
   }
   return colors[color](msg);
-}
+};
 
 /**
  * Builds [/path/filename] tag for log outputs.
  * Path/filename are derived from an error stack
  * @return {string} Either the found [/path/filename] tag or [not/found]
  */
-function buildModuleTag() {
+let buildModuleTag = () => {
   let appDir = path.dirname(require.main.filename);
   let fnRX = new RegExp(`\\(?${appDir}\\/(?!node_modules)(.*)\.js(:\\d+:\\d+)\\)?`);
   Error.stackTraceLimit = config.get('stackTraceLimit') || 25;
@@ -189,7 +189,7 @@ function buildModuleTag() {
   }).join('\n');
   let fnMatch = stack.match(fnRX);
   return fnMatch ? `/${fnMatch[1]}${config.get('longLogTags') ? fnMatch[2] : ''}` : 'not/found';
-}
+};
 
 let registerGlobals = () => {
   _.mapKeys(logLevels.levels, (value, key) => {
@@ -203,31 +203,33 @@ let registerGlobals = () => {
 /**
  * Returns install- or default logger
  * @param  {?string} logger Name of logger to return
+ * @memberOf module:src/log
  * @return {module:src/log}
  */
 module.exports = (install) => {
-  if (install) {
-    log.winston = new winston.Logger({
-      levels: logLevels.levels,
-      transports: [
-        new (winston.transports.Console)({
-          name: 'cli-install',
-          level: 'debug',
-          formatter: formatCLI
-        }),
-        new (winston.transports.File)({
-          name: 'fs-install',
-          level: 'info',
-          colorize: false,
-          filename: './install.log',
-          json: false,
-          tailable: true,
-          formatter: formatFS
-        })
-      ]
-    });
-  } else {
-    if (!log.winston) {
+
+  if (!log.winston) {
+    if (install) {
+      log.winston = new winston.Logger({
+        levels: logLevels.levels,
+        transports: [
+          new (winston.transports.Console)({
+            name: 'cli-install',
+            level: 'debug',
+            formatter: formatCLI
+          }),
+          new (winston.transports.File)({
+            name: 'fs-install',
+            level: 'info',
+            colorize: false,
+            filename: './install.log',
+            json: false,
+            tailable: true,
+            formatter: formatFS
+          })
+        ]
+      });
+    } else {
       log.winston = new winston.Logger({
         levels: logLevels.levels,
         transports: [
@@ -251,7 +253,7 @@ module.exports = (install) => {
         ]
       });
     }
+    registerGlobals();
   }
-  registerGlobals();
   return log.winston;
 };

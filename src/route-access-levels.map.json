@@ -1,0 +1,32 @@
+{
+  "/auth": {
+    "GET": [ "readAPI" ],
+    "POST": [ "manageUsers" ]
+  },
+  "/auth/*": {
+    "PUT": [ "manageUsers", true ],
+    "DELETE": [ "manageUsers", true ]
+  },
+  "/auth/users": {
+    "GET": [ "manageUsers", true ]
+  },
+  "/v0/spis": {
+    "GET": [ "readAPI" ],
+    "POST": [ "writeAPI" ]
+  },
+  "/v0/apps": {
+    "GET": [ "readAPI" ],
+    "POST": [ "writeAPI" ]
+  },
+  "/v0/apps/*": {
+    "GET": [ "readAPI" ],
+    "PUT": [ "writeAPI" ],
+    "DELETE": [ "writeAPI" ]
+  },
+  
+  "/v0/spis/*": {
+    "GET": [ "readAPI" ],
+    "PUT": [ "writeAPI" ],
+    "DELETE": [ "writeAPI" ]
+  }
+}
