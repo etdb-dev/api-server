@@ -12,6 +12,7 @@
     "colors": "^1.1.2",
     "express": "^4.14.0",
     "express-promise-router": "^1.1.1",
+    "forever": "^0.15.3",
     "forever-monitor": "^1.7.1",
     "inquirer": "^2.0.0",
     "jsonwebtoken": "^7.1.9",
@@ -22,11 +23,11 @@
     "winston": "^2.3.0"
   },
   "devDependencies": {
+    "apidoc": "^0.16.1",
     "chai": "^3.5.0",
     "chai-http": "^3.0.0",
     "minami": "^1.1.1",
-    "mocha": "^3.1.2",
-    "apidoc": "^0.16.1"
+    "mocha": "^3.1.2"
   },
   "engines": {
     "node": ">=6.9.1",

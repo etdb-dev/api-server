@@ -2,7 +2,8 @@ const gulp = require('gulp');
 const gutil = require('gulp-util');
 const jshint = require('gulp-jshint');
 
-const forever = require('forever');
+const GulpForever = require('./.gulp/forever.js');
+let forever = new GulpForever('.forever/etdb-api-dev.json');
 
 gulp.task('default', function() {
   return gutil.log('Help\n\nUse one of the following parameters:\n\n' +
@@ -22,13 +23,38 @@ gulp.task('watch', function() {
   gulp.watch('./*.js', ['jshint']);
 });
 
-gulp.task('dev', function(done) {
+// starts dev server in daemon mode
+// @see .forever/etdb-api-dev.json
+gulp.task('dev:start', function(done) {
+  forever.isRunning('etdb-api-dev').then((instances) => {
+    if (instances.length !== 0) {
+      let pids = instances.map((instance) => instance.pid);
+      gutil.log('Development server is already running. pid(s): ' + pids.join(', '));
+    } else {
+      forever.startDaemon('etdb-api-dev');
+    }
 
-  let foreverConf = require('./.forever/etdb-api-dev.json');
-  gutil.log(foreverConf);
-  forever.startDaemon('etdb.js', foreverConf);
+    return done();
+  });
+});
 
-  return gutil.log('Running in dev mode!');
+// stops all instances of dev server
+gulp.task('dev:stop', function(done) {
+  forever.stop('etdb-api-dev').then((stopped) => {
+    gutil.log(`${stopped.n} instance${stopped.n > 1 ? 's have' : ' has'} been stopped!`);
+  });
+});
+gulp.task('dev:isRunning', function(done) {
+  forever.isRunning('etdb-api-dev').then((instances) => gutil.log(instances));
+});
+gulp.task('dev:tail', function() {
+  forever.tail('etdb-api-dev', (data) => {
+    gutil.log(`[${gutil.colors.gray(data.file + '|' + data.pid)}] ${data.line}`);
+  });
+});
+
+gulp.task('dev', [ 'dev:start', 'dev:tail' ], () => {
+  gutil.log('Development Mode');
 });
 
 gulp.task('deploy', function() {

@@ -1,8 +1,11 @@
 {
   "uid": "etdb-api-dev",
   "sourceDir": "/var/wwn/etdb/api-server",
-  "append": true,
-  "watch": false,
-  "pidFile": ".dev/api-server.pid",
-  "logFile": ".dev/api-server.log"
+  "file": "etdb.js",
+  "append": false,
+  "watch": true,
+  "watchDirectory": "/var/wwn/etdb/api-server/src",
+  "watchIgnore": null,
+  "pidFile": "/var/wwn/etdb/api-server/.dev/api-server.pid",
+  "logFile": "/var/wwn/etdb/api-server/.dev/api-server.log"
 }
