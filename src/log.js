@@ -235,18 +235,6 @@ module.exports = (install) => {
             name: 'cli-default',
             level: 'debug',
             formatter: formatCLI
-          }),
-          new (winston.transports.File)({
-            name: 'fs-default',
-            level: 'info',
-            colorize: false,
-            filename: './logs/etdb.log',
-            maxsize: 1000000,
-            maxFiles: 7,
-            json: false,
-            tailable: true,
-            zippedArchive: true,
-            formatter: formatFS
           })
         ]
       });
