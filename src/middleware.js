@@ -65,6 +65,12 @@ middleware.doBasicAuth = (req, res, next) => {
   });
 };
 
+middleware.setCORS = (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  next();
+};
+
 middleware.canAccess = (req, res, data) => {
 
   function fail() {
